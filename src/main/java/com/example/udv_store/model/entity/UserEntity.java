@@ -10,10 +10,10 @@ import java.util.UUID;
 public class UserEntity {
 
     @Id
-    @Column(unique = true, name = "user_id", nullable = false)
+    @Column(unique = true, name = "id", nullable = false)
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
-    private UUID userId;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
@@ -31,12 +31,12 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getId() {
+        return id;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setId(UUID userId) {
+        this.id = userId;
     }
 
     public RoleEntity getRoleEntity() {
