@@ -1,9 +1,11 @@
 package com.example.udv_store.model.service;
 
+import com.example.udv_store.infrastructure.user.RegistrationRequest;
 import com.example.udv_store.model.entity.RoleEntity;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.repository.RoleRepository;
 import com.example.udv_store.model.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +25,25 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void create(UserEntity user) {
+    public void create(RegistrationRequest registrationRequest) {
+        if (findByEmail(registrationRequest.getEmail()) != null) {
+            throw new AccessDeniedException("This email is already registered.");
+        }
+        UserEntity user = new UserEntity();
         RoleEntity userRole = roleRepository.findByName("ROLE_USER");
         user.setRoleEntity(userRole);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEmail(registrationRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+        user.setUserBalance(0);
         userRepository.save(user);
+    }
+
+    public void changeUserBalance(String userId, Integer tokenBalance) {
+        UserEntity user = findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException();
+        }
+        user.setUserBalance(tokenBalance);
     }
 
     public List<UserEntity> readAll() {
@@ -51,14 +67,14 @@ public class UserService {
         return user != null && passwordEncoder.matches(password, user.getPassword()) ? user : null;
     }
 
-    public boolean update(UserEntity user, UUID userId) {
+    /*public boolean update(UserEntity user, UUID userId) {
         if (userRepository.existsById(userId)) {
-            user.setUserId(userId);
+            user.setId(userId);
             create(user);
             return true;
         }
         return false;
-    }
+    }*/
 
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
