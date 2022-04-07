@@ -21,17 +21,11 @@ public class OrderController {
         this.jwtProvider = jwtProvider;
     }
 
-    @PostMapping("/order")
+    @PostMapping("/user/order")
     public ResponseEntity<?> createOrder(@RequestBody OrderCreationRequest orderCreationRequest,
                                          @RequestHeader(name = "Authorization") String token) {
         try {
-            OrderEntity order = new OrderEntity();
-            String userId = jwtProvider.getUserIdFromToken(token.substring(7));
-            order.setUserId(UUID.fromString(userId));
-            order.setOrderDate(orderCreationRequest.getOrderDate());
-            order.setDeliveryDate(orderCreationRequest.getDeliveryDate());
-            order.setTotal(orderCreationRequest.getTotal());
-            orderService.create(order);
+            orderService.create(orderCreationRequest, token);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -52,19 +46,34 @@ public class OrderController {
     }
 
     @GetMapping("/admin/orders")
-    public ResponseEntity<List<OrderEntity>> getAllUserOrders() {
+    public ResponseEntity<List<OrderEntity>> manipulateOrders(@RequestParam(value = "userId", required = false) UUID userId,
+                                                              @RequestParam(value = "orderId", required = false) UUID orderId) {
         try {
-            final List<OrderEntity> orders = orderService.findAllOrders();
-            return orders != null && !orders.isEmpty()
-                    ? new ResponseEntity<>(orders, HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (userId == null && orderId == null) {
+                final List<OrderEntity> orders = orderService.findAllOrders();
+                return getListResponseEntity(orders);
+            } else if (userId != null) {
+                final List<OrderEntity> orders = orderService.findAllUserOrdersById(userId);
+                return getListResponseEntity(orders);
+            } else {
+                final boolean isDeleted = orderService.delete(orderId);
+                return isDeleted
+                        ? new ResponseEntity<>(HttpStatus.OK)
+                        : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/admin/orders/{orderId}")
-    public ResponseEntity<List<OrderEntity>> getAllOrders(@PathVariable(name = "orderId") UUID userId) {
+    private ResponseEntity<List<OrderEntity>> getListResponseEntity(List<OrderEntity> orders) {
+        return orders != null && !orders.isEmpty()
+                ? new ResponseEntity<>(orders, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    /*@GetMapping("/admin/orders/{userId}")
+    public ResponseEntity<List<OrderEntity>> getAllOrders(@PathVariable(name = "userId") UUID userId) {
         try {
             final List<OrderEntity> orders = orderService.findAllUserOrdersById(userId);
             return orders != null && !orders.isEmpty()
@@ -75,16 +84,15 @@ public class OrderController {
         }
     }
 
-    @DeleteMapping("/admin/order/{orderId}")
-    public ResponseEntity<?> deleteProduct(@PathVariable(name = "orderId") UUID orderId) {
+    @DeleteMapping("/admin/orders/{orderId}")
+    public ResponseEntity<?> deleteOrder(@PathVariable(name = "orderId") UUID orderId) {
         try  {
             final boolean isDeleted = orderService.delete(orderId);
-
             return isDeleted
                     ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
+    }*/
 }

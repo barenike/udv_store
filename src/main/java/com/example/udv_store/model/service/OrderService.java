@@ -1,5 +1,7 @@
 package com.example.udv_store.model.service;
 
+import com.example.udv_store.configuration.jwt.JwtProvider;
+import com.example.udv_store.infrastructure.order.OrderCreationRequest;
 import com.example.udv_store.model.entity.OrderEntity;
 import com.example.udv_store.model.repository.OrderRepository;
 import org.springframework.stereotype.Service;
@@ -11,12 +13,20 @@ import java.util.stream.Collectors;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final JwtProvider jwtProvider;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, JwtProvider jwtProvider) {
         this.orderRepository = orderRepository;
+        this.jwtProvider = jwtProvider;
     }
 
-    public void create(OrderEntity order) {
+    public void create(OrderCreationRequest orderCreationRequest, String token) {
+        OrderEntity order = new OrderEntity();
+        String userId = jwtProvider.getUserIdFromToken(token.substring(7));
+        order.setUserId(UUID.fromString(userId));
+        order.setOrderDate(orderCreationRequest.getOrderDate());
+        order.setDeliveryDate(orderCreationRequest.getDeliveryDate());
+        order.setTotal(orderCreationRequest.getTotal());
         orderRepository.save(order);
     }
 

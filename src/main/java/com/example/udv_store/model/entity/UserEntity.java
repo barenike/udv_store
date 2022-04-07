@@ -25,8 +25,8 @@ public class UserEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "token_balance", nullable = false)
-    private Integer tokenBalance;
+    @Column(name = "user_balance", nullable = false)
+    private Integer userBalance;
 
     public UserEntity() {
     }
@@ -35,8 +35,8 @@ public class UserEntity {
         return id;
     }
 
-    public void setId(UUID userId) {
-        this.id = userId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public RoleEntity getRoleEntity() {
@@ -63,11 +63,11 @@ public class UserEntity {
         this.password = password;
     }
 
-    public Integer getTokenBalance() {
-        return tokenBalance;
+    public Integer getUserBalance() {
+        return userBalance;
     }
 
-    public void setTokenBalance(Integer tokenBalance) {
-        this.tokenBalance = tokenBalance;
+    public void setUserBalance(Integer userBalance) {
+        this.userBalance = userBalance;
     }
 }

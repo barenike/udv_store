@@ -1,5 +1,6 @@
 package com.example.udv_store.model.service;
 
+import com.example.udv_store.infrastructure.product.CreateProductRequest;
 import com.example.udv_store.model.entity.ProductEntity;
 import com.example.udv_store.model.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,12 @@ public class ProductService {
         return productRepository.findByProductId(productId);
     }
 
-    public void create(ProductEntity product) {
+    public void create(CreateProductRequest createProductRequest) {
+        ProductEntity product = new ProductEntity();
+        product.setName(createProductRequest.getName());
+        product.setPrice(createProductRequest.getPrice());
+        product.setDescription(createProductRequest.getDescription());
+        product.setAmount(createProductRequest.getAmount());
         productRepository.save(product);
     }
 

@@ -4,7 +4,7 @@ import com.example.udv_store.configuration.jwt.JwtProvider;
 import com.example.udv_store.infrastructure.user.AuthRequest;
 import com.example.udv_store.infrastructure.user.AuthResponse;
 import com.example.udv_store.infrastructure.user.RegistrationRequest;
-import com.example.udv_store.infrastructure.user.TokenBalanceRequest;
+import com.example.udv_store.infrastructure.user.UserBalanceRequest;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,14 +27,10 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegistrationRequest registrationRequest) {
         try {
-            UserEntity user = new UserEntity();
-            user.setEmail(registrationRequest.getEmail());
-            user.setPassword(registrationRequest.getPassword());
-            user.setTokenBalance(0);
-            userService.create(user);
+            userService.create(registrationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (AccessDeniedException e) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -56,22 +51,10 @@ public class UserController {
         }
     }
 
-    // Doesn't work! Change the logic of controller or the logic of generateToken.
-    @PostMapping("/exit")
-    public ResponseEntity<?> exit(@RequestHeader(name = "Authorization") String token) {
-        try {
-            String userId = jwtProvider.getUserIdFromToken(token.substring(7));
-            jwtProvider.generateToken(userId);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @PostMapping("/admin/tokenBalance")
-    public ResponseEntity<?> changeTokenBalance(@RequestBody TokenBalanceRequest tokenBalanceRequest) {
+    public ResponseEntity<?> changeUserBalance(@RequestBody UserBalanceRequest userBalanceRequest) {
         try {
-            userService.changeTokenBalance(tokenBalanceRequest.getId(), tokenBalanceRequest.getTokenBalance());
+            userService.changeUserBalance(userBalanceRequest.getId(), userBalanceRequest.getTokenBalance());
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

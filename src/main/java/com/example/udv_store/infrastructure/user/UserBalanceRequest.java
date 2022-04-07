@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class TokenBalanceRequest {
+public class UserBalanceRequest {
 
     @NotNull
     private Integer tokenBalance;

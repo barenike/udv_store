@@ -45,12 +45,7 @@ public class ProductController {
     @PostMapping("/admin/product")
     public ResponseEntity<?> createProduct(@RequestBody CreateProductRequest createProductRequest) {
         try {
-            ProductEntity product = new ProductEntity();
-            product.setName(createProductRequest.getName());
-            product.setPrice(createProductRequest.getPrice());
-            product.setDescription(createProductRequest.getDescription());
-            product.setAmount(createProductRequest.getAmount());
-            productService.create(product);
+            productService.create(createProductRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -62,7 +57,6 @@ public class ProductController {
     public ResponseEntity<?> deleteProduct(@PathVariable(name = "productId") UUID productId) {
         try {
             final boolean isDeleted = productService.delete(productId);
-
             return isDeleted
                     ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
