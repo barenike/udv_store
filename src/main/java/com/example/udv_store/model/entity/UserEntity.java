@@ -10,10 +10,10 @@ import java.util.UUID;
 public class UserEntity {
 
     @Id
-    @Column(unique = true, name = "id", nullable = false)
+    @Column(unique = true, name = "user_id", nullable = false)
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
-    private UUID id;
+    private UUID userId;
 
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
@@ -25,18 +25,18 @@ public class UserEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "user_balance", nullable = false)
-    private Integer userBalance;
+    @Column(name = "token_balance", nullable = false)
+    private Integer tokenBalance;
 
     public UserEntity() {
     }
 
-    public UUID getId() {
-        return id;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public RoleEntity getRoleEntity() {
@@ -63,11 +63,11 @@ public class UserEntity {
         this.password = password;
     }
 
-    public Integer getUserBalance() {
-        return userBalance;
+    public Integer getTokenBalance() {
+        return tokenBalance;
     }
 
-    public void setUserBalance(Integer userBalance) {
-        this.userBalance = userBalance;
+    public void setTokenBalance(Integer tokenBalance) {
+        this.tokenBalance = tokenBalance;
     }
 }
