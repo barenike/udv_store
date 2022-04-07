@@ -38,12 +38,13 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void changeUserBalance(String userId, Integer tokenBalance) {
+    public void changeUserBalance(String userId, Integer userBalance) {
         UserEntity user = findByUserId(userId);
         if (user == null) {
             throw new IllegalArgumentException();
         }
-        user.setUserBalance(tokenBalance);
+        user.setUserBalance(userBalance);
+        userRepository.save(user);
     }
 
     public List<UserEntity> readAll() {

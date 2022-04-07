@@ -8,8 +8,8 @@ import javax.validation.constraints.NotNull;
 public class UserBalanceRequest {
 
     @NotNull
-    private Integer tokenBalance;
+    private String userId;
 
     @NotNull
-    private String id;
+    private Integer userBalance;
 }

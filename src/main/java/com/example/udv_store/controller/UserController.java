@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 @RestController
 public class UserController {
     private final UserService userService;
@@ -25,7 +27,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<?> registerUser(@RequestBody @Valid RegistrationRequest registrationRequest) {
         try {
             userService.create(registrationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
@@ -51,10 +53,10 @@ public class UserController {
         }
     }
 
-    @PostMapping("/admin/tokenBalance")
+    @PostMapping("/admin/userBalance")
     public ResponseEntity<?> changeUserBalance(@RequestBody UserBalanceRequest userBalanceRequest) {
         try {
-            userService.changeUserBalance(userBalanceRequest.getId(), userBalanceRequest.getTokenBalance());
+            userService.changeUserBalance(userBalanceRequest.getUserId(), userBalanceRequest.getUserBalance());
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

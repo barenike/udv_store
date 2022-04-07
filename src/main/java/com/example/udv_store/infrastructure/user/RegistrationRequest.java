@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class RegistrationRequest implements Serializable {
 
     @Max(255)
-    @Pattern(regexp = "[\\w!#$%&'.*+/=?^`{|}~-]*@udv\\.dev")
+    @Pattern(regexp = "[\\w!#$%&'.*+/=?^`{|}~-]*@ussc\\.ru")
     private String email;
 
     @Pattern(regexp = "(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\\d)\\S{8,255}")
