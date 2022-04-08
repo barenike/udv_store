@@ -4,6 +4,8 @@ import com.example.udv_store.configuration.jwt.JwtProvider;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
 import com.example.udv_store.model.entity.OrderEntity;
 import com.example.udv_store.model.repository.OrderRepository;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,8 +26,9 @@ public class OrderService {
         OrderEntity order = new OrderEntity();
         String userId = jwtProvider.getUserIdFromToken(token.substring(7));
         order.setUserId(UUID.fromString(userId));
-        order.setOrderDate(orderCreationRequest.getOrderDate());
-        order.setDeliveryDate(orderCreationRequest.getDeliveryDate());
+        DateTimeZone zoneYekaterinburg = DateTimeZone.forID( "Asia/Yekaterinburg" );
+        DateTime now = DateTime.now(zoneYekaterinburg);
+        order.setOrderDate(now.toDate());
         order.setTotal(orderCreationRequest.getTotal());
         orderRepository.save(order);
     }

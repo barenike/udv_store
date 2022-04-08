@@ -71,28 +71,4 @@ public class OrderController {
                 ? new ResponseEntity<>(orders, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
-    /*@GetMapping("/admin/orders/{userId}")
-    public ResponseEntity<List<OrderEntity>> getAllOrders(@PathVariable(name = "userId") UUID userId) {
-        try {
-            final List<OrderEntity> orders = orderService.findAllUserOrdersById(userId);
-            return orders != null && !orders.isEmpty()
-                    ? new ResponseEntity<>(orders, HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @DeleteMapping("/admin/orders/{orderId}")
-    public ResponseEntity<?> deleteOrder(@PathVariable(name = "orderId") UUID orderId) {
-        try  {
-            final boolean isDeleted = orderService.delete(orderId);
-            return isDeleted
-                    ? new ResponseEntity<>(HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }*/
 }

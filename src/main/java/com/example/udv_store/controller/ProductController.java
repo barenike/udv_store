@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,8 @@ public class ProductController {
         }
     }
 
+    // Do I need this?
+    // Untested
     @GetMapping("/product/{productId}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable(name = "productId") UUID productId) {
         try {
@@ -43,7 +46,7 @@ public class ProductController {
     }
 
     @PostMapping("/admin/product")
-    public ResponseEntity<?> createProduct(@RequestBody CreateProductRequest createProductRequest) {
+    public ResponseEntity<?> createProduct(@RequestBody @Valid CreateProductRequest createProductRequest) {
         try {
             productService.create(createProductRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);

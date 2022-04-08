@@ -22,7 +22,7 @@ public class OrderEntity {
     @Column(name = "order_date", nullable = false)
     private Date orderDate;
 
-    @Column(name = "delivery_date", nullable = false)
+    @Column(name = "delivery_date")
     private Date deliveryDate;
 
     @Column(name = "total", nullable = false)

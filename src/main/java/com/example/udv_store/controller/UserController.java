@@ -10,11 +10,10 @@ import com.example.udv_store.model.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.UUID;
 
 @RestController
 public class UserController {
@@ -39,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/auth")
-    public ResponseEntity<AuthResponse> auth(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> auth(@RequestBody @Valid AuthRequest authRequest) {
         try {
             UserEntity userEntity = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
             if (userEntity != null) {
@@ -53,8 +52,20 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/admin/user/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable(name = "userId") UUID userId) {
+        try {
+            final boolean isDeleted = userService.delete(userId);
+            return isDeleted
+                    ? new ResponseEntity<>(HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @PostMapping("/admin/userBalance")
-    public ResponseEntity<?> changeUserBalance(@RequestBody UserBalanceRequest userBalanceRequest) {
+    public ResponseEntity<?> changeUserBalance(@RequestBody @Valid UserBalanceRequest userBalanceRequest) {
         try {
             userService.changeUserBalance(userBalanceRequest.getUserId(), userBalanceRequest.getUserBalance());
             return new ResponseEntity<>(HttpStatus.OK);
