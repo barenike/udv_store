@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class CreateProductRequest {
+public class ProductCreationRequest {
 
     @NotNull
     private String name;

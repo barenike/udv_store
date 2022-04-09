@@ -1,13 +1,51 @@
 package com.example.udv_store.model.service;
 
-import com.example.udv_store.model.repository.OrderRepository;
+import com.example.udv_store.infrastructure.order.OrderCreationDetails;
+import com.example.udv_store.model.entity.OrderRecordEntity;
+import com.example.udv_store.model.repository.OrderRecordRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderRecordService {
-    private final OrderRepository orderRepository;
+    private final OrderRecordRepository orderRecordRepository;
 
-    public OrderRecordService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public OrderRecordService(OrderRecordRepository orderRecordRepository) {
+        this.orderRecordRepository = orderRecordRepository;
+    }
+
+    public void create(List<OrderCreationDetails> orderCreationDetails, UUID id) {
+        for (OrderCreationDetails details : orderCreationDetails) {
+            OrderRecordEntity orderRecord = new OrderRecordEntity();
+            orderRecord.setOrderId(id);
+            orderRecord.setProductId(UUID.fromString(details.getProductId()));
+            orderRecord.setQuantity(details.getQuantity());
+            orderRecordRepository.save(orderRecord);
+        }
+    }
+
+    public List<OrderRecordEntity> findAllOrderRecords() {
+        return orderRecordRepository.findAll();
+    }
+
+    public List<OrderRecordEntity> findOrderRecordsByOrderId(UUID orderId) {
+        return orderRecordRepository.findByOrderId(orderId);
+    }
+
+    public List<OrderRecordEntity> findAllOrderRecordsByOrderId(UUID orderId) {
+        List<OrderRecordEntity> allOrders = findAllOrderRecords();
+        return allOrders.stream().filter(orderRecord -> orderRecord.getOrderId().equals(orderId)).collect(Collectors.toList());
+    }
+
+    public boolean delete(UUID id) {
+        if (orderRecordRepository.existsById(id)) {
+            orderRecordRepository.deleteById(id);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

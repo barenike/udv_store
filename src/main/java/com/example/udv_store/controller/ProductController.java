@@ -1,6 +1,7 @@
 package com.example.udv_store.controller;
 
-import com.example.udv_store.infrastructure.product.CreateProductRequest;
+import com.example.udv_store.infrastructure.product.ProductCreationRequest;
+import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
 import com.example.udv_store.model.service.ProductService;
 import org.springframework.http.HttpStatus;
@@ -19,20 +20,28 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/products")
-    public ResponseEntity<List<ProductEntity>> getProducts() {
+    @PostMapping("/admin/product")
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreationRequest productCreationRequest) {
         try {
-            final List<ProductEntity> products = productService.getAllProducts();
-            return products != null && !products.isEmpty()
-                    ? new ResponseEntity<>(products, HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            productService.create(productCreationRequest);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    // Do I need this?
-    // Untested
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductResponse>> getProducts() {
+        try {
+            final List<ProductResponse> products = productService.getAllProducts();
+            return products != null && !products.isEmpty()
+                    ? new ResponseEntity<>(products, HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/product/{productId}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable(name = "productId") UUID productId) {
         try {
@@ -44,17 +53,6 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
-    @PostMapping("/admin/product")
-    public ResponseEntity<?> createProduct(@RequestBody @Valid CreateProductRequest createProductRequest) {
-        try {
-            productService.create(createProductRequest);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
 
     @DeleteMapping("/admin/product/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable(name = "productId") UUID productId) {

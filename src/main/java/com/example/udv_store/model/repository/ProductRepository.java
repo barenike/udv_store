@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
 
-    @Query("select u from ProductEntity u where u.id = ?1")
+    @Query("select p from ProductEntity p where p.id = ?1")
     ProductEntity findByProductId(UUID id);
 }

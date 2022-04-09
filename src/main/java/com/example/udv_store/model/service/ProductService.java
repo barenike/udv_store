@@ -1,12 +1,14 @@
 package com.example.udv_store.model.service;
 
-import com.example.udv_store.infrastructure.product.CreateProductRequest;
+import com.example.udv_store.infrastructure.product.ProductCreationRequest;
+import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
 import com.example.udv_store.model.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -16,20 +18,21 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public List<ProductEntity> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts() {
+        List<ProductEntity> products = productRepository.findAll();
+        return products.stream().map(product -> new ProductResponse(product.getId().toString(), product.getName(), product.getPrice())).collect(Collectors.toList());
     }
 
-    public ProductEntity getProduct(UUID productId) {
-        return productRepository.findByProductId(productId);
+    public ProductEntity getProduct(UUID id) {
+        return productRepository.findByProductId(id);
     }
 
-    public void create(CreateProductRequest createProductRequest) {
+    public void create(ProductCreationRequest productCreationRequest) {
         ProductEntity product = new ProductEntity();
-        product.setName(createProductRequest.getName());
-        product.setPrice(createProductRequest.getPrice());
-        product.setDescription(createProductRequest.getDescription());
-        product.setAmount(createProductRequest.getAmount());
+        product.setName(productCreationRequest.getName());
+        product.setPrice(productCreationRequest.getPrice());
+        product.setDescription(productCreationRequest.getDescription());
+        product.setAmount(productCreationRequest.getAmount());
         productRepository.save(product);
     }
 

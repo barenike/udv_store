@@ -68,15 +68,6 @@ public class UserService {
         return user != null && passwordEncoder.matches(password, user.getPassword()) ? user : null;
     }
 
-    /*public boolean update(UserEntity user, UUID userId) {
-        if (userRepository.existsById(userId)) {
-            user.setId(userId);
-            create(user);
-            return true;
-        }
-        return false;
-    }*/
-
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId);
