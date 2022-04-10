@@ -42,7 +42,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product/{productId}")
+    @GetMapping("/products/{productId}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable(name = "productId") UUID productId) {
         try {
             final ProductEntity product = productService.getProduct(productId);
