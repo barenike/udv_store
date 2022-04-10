@@ -5,12 +5,14 @@ import com.example.udv_store.infrastructure.order.OrderCreationDetails;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
 import com.example.udv_store.model.entity.OrderEntity;
 import com.example.udv_store.model.entity.OrderRecordEntity;
+import com.example.udv_store.model.entity.OrderStatusEnum;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.repository.OrderRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,11 +34,10 @@ public class OrderService {
 
     public void create(OrderCreationRequest orderCreationRequest, String token) {
         OrderEntity order = new OrderEntity();
+        order.setStatus(OrderStatusEnum.CREATED.toString());
         String userId = jwtProvider.getUserIdFromToken(token.substring(7));
         order.setUserId(UUID.fromString(userId));
-        DateTimeZone zoneYekaterinburg = DateTimeZone.forID("Asia/Yekaterinburg");
-        DateTime now = DateTime.now(zoneYekaterinburg);
-        order.setOrderDate(now.toDate());
+        order.setCreationDate(getCurrentYekaterinburgDate());
         int total = 0;
         for (OrderCreationDetails orderCreationDetails : orderCreationRequest.getOrderCreationDetails()) {
             total += productService.getProduct(UUID.fromString(orderCreationDetails.getProductId())).getPrice() * orderCreationDetails.getQuantity();
@@ -52,6 +53,28 @@ public class OrderService {
         userService.changeUserBalance(userId, userBalance - total);
     }
 
+    public boolean changeStatus(UUID id, String status) {
+        if (orderRepository.existsById(id)) {
+            OrderEntity order = orderRepository.getById(id);
+            order.setStatus(OrderStatusEnum.valueOf(status).toString());
+            if (OrderStatusEnum.SHIPPED.toString().equals(status)) {
+                order.setShippingDate(getCurrentYekaterinburgDate());
+            } else if (OrderStatusEnum.COMPLETED.toString().equals(status)) {
+                order.setCompletionDate(getCurrentYekaterinburgDate());
+            }
+            orderRepository.save(order);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private Date getCurrentYekaterinburgDate() {
+        DateTimeZone zoneYekaterinburg = DateTimeZone.forID("Asia/Yekaterinburg");
+        DateTime now = DateTime.now(zoneYekaterinburg);
+        return now.toDate();
+    }
+
     public List<OrderEntity> findAllOrders() {
         return orderRepository.findAll();
     }
@@ -63,6 +86,9 @@ public class OrderService {
     public boolean delete(UUID id) throws Exception {
         if (orderRepository.existsById(id)) {
             OrderEntity order = orderRepository.getById(id);
+            if (!order.getStatus().equals(OrderStatusEnum.CREATED.toString())) {
+                return false;
+            }
             String userId = String.valueOf(order.getUserId());
             UserEntity user = userService.findByUserId(userId);
             Integer userBalance = user.getUserBalance();

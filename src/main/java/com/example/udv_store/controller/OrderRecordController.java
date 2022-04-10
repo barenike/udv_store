@@ -21,7 +21,7 @@ public class OrderRecordController {
     }
 
     @GetMapping("/user/order_records/{orderId}")
-    public ResponseEntity<List<OrderRecordEntity>> getMyOrderRecords(@PathVariable(name = "orderId") UUID orderId) {
+    public ResponseEntity<List<OrderRecordEntity>> getMyOrderRecordsByOrderId(@PathVariable(name = "orderId") UUID orderId) {
         try {
             final List<OrderRecordEntity> orders = orderRecordService.findOrderRecordsByOrderId(orderId);
             return orders != null && !orders.isEmpty()
@@ -32,23 +32,16 @@ public class OrderRecordController {
         }
     }
 
-    // Yet to be tested
     @GetMapping("/admin/order_records")
-    public ResponseEntity<List<OrderRecordEntity>> manipulateOrderRecords(@RequestParam(value = "userId", required = false) UUID userId,
-                                                                          @RequestParam(value = "orderRecordId", required = false) UUID orderRecordId) {
+    public ResponseEntity<List<OrderRecordEntity>> manipulateOrderRecords(@RequestParam(value = "orderId", required = false) UUID orderId) {
         try {
-            if (userId == null && orderRecordId == null) {
-                final List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecords();
-                return getListResponseEntity(orderRecords);
-            } else if (userId != null) {
-                final List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(userId);
-                return getListResponseEntity(orderRecords);
+            final List<OrderRecordEntity> orderRecords;
+            if (orderId == null) {
+                orderRecords = orderRecordService.findAllOrderRecords();
             } else {
-                final boolean isDeleted = orderRecordService.delete(orderRecordId);
-                return isDeleted
-                        ? new ResponseEntity<>(HttpStatus.OK)
-                        : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+                orderRecords = orderRecordService.findAllOrderRecordsByOrderId(orderId);
             }
+            return getListResponseEntity(orderRecords);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

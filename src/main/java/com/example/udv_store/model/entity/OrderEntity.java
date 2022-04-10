@@ -19,14 +19,20 @@ public class OrderEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "order_date", nullable = false)
-    private Date orderDate;
+    @Column(name = "creation_date", nullable = false)
+    private Date creationDate;
 
-    @Column(name = "delivery_date")
-    private Date deliveryDate;
+    @Column(name = "shipping_date")
+    private Date shippingDate;
+
+    @Column(name = "completion_date")
+    private Date completionDate;
 
     @Column(name = "total", nullable = false)
     private Integer total;
+
+    @Column(name = "status", nullable = false)
+    private String status;
 
     public OrderEntity() {
     }
@@ -47,20 +53,28 @@ public class OrderEntity {
         this.userId = userId;
     }
 
-    public Date getOrderDate() {
-        return orderDate;
+    public Date getCreationDate() {
+        return creationDate;
     }
 
-    public void setOrderDate(Date orderDate) {
-        this.orderDate = orderDate;
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
     }
 
-    public Date getDeliveryDate() {
-        return deliveryDate;
+    public Date getShippingDate() {
+        return shippingDate;
     }
 
-    public void setDeliveryDate(Date deliveryDate) {
-        this.deliveryDate = deliveryDate;
+    public void setShippingDate(Date shippingDate) {
+        this.shippingDate = shippingDate;
+    }
+
+    public Date getCompletionDate() {
+        return completionDate;
+    }
+
+    public void setCompletionDate(Date completionDate) {
+        this.completionDate = completionDate;
     }
 
     public Integer getTotal() {
@@ -69,5 +83,13 @@ public class OrderEntity {
 
     public void setTotal(Integer total) {
         this.total = total;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

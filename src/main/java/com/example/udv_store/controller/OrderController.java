@@ -59,7 +59,8 @@ public class OrderController {
 
     @GetMapping("/admin/orders")
     public ResponseEntity<List<OrderEntity>> manipulateOrders(@RequestParam(value = "userId", required = false) UUID userId,
-                                                              @RequestParam(value = "orderId", required = false) UUID orderId) {
+                                                              @RequestParam(value = "orderId", required = false) UUID orderId,
+                                                              @RequestParam(value = "status", required = false) String status) {
         try {
             if (userId == null && orderId == null) {
                 final List<OrderEntity> orders = orderService.findAllOrders();
@@ -67,6 +68,11 @@ public class OrderController {
             } else if (userId != null) {
                 final List<OrderEntity> orders = orderService.findOrdersByUserId(userId);
                 return getListResponseEntity(orders);
+            } else if (status != null) {
+                final boolean isChanged = orderService.changeStatus(orderId, status);
+                return isChanged
+                        ? new ResponseEntity<>(HttpStatus.OK)
+                        : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
             } else {
                 final boolean isDeleted = orderService.delete(orderId);
                 return isDeleted
