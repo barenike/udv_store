@@ -8,7 +8,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "products")
 public class ProductEntity {
-
     @Id
     @Column(unique = true, name = "id", nullable = false)
     @GeneratedValue(generator = "uuid")
@@ -26,6 +25,12 @@ public class ProductEntity {
 
     @Column(name = "amount", nullable = false)
     private Integer amount;
+
+    @Column(name = "image_url", nullable = false)
+    private String imageUrl;
+
+    @Column(name = "image_path", nullable = false)
+    private String imagePath;
 
     public ProductEntity() {
     }
@@ -68,5 +73,21 @@ public class ProductEntity {
 
     public void setAmount(Integer amount) {
         this.amount = amount;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

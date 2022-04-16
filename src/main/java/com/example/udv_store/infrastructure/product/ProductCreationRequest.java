@@ -1,12 +1,12 @@
 package com.example.udv_store.infrastructure.product;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 
 @Data
 public class ProductCreationRequest {
-
     @NotNull
     private String name;
 
@@ -17,4 +17,7 @@ public class ProductCreationRequest {
 
     @NotNull
     private Integer amount;
+
+    @NotNull
+    private MultipartFile file;
 }

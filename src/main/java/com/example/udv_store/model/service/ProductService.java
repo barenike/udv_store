@@ -1,11 +1,15 @@
 package com.example.udv_store.model.service;
 
+import com.dropbox.core.DbxException;
 import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
 import com.example.udv_store.model.repository.ProductRepository;
+import com.example.udv_store.model.service.dropbox.DropboxService;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,31 +17,39 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
+    private final DropboxService dropboxService;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, DropboxService dropboxService) {
         this.productRepository = productRepository;
+        this.dropboxService = dropboxService;
     }
 
     public List<ProductResponse> getAllProducts() {
         List<ProductEntity> products = productRepository.findAll();
-        return products.stream().map(product -> new ProductResponse(product.getId().toString(), product.getName(), product.getPrice())).collect(Collectors.toList());
+        return products.stream().map(product -> new ProductResponse(product.getId().toString(), product.getName(), product.getPrice(), product.getImageUrl())).collect(Collectors.toList());
     }
 
     public ProductEntity getProduct(UUID id) {
         return productRepository.findByProductId(id);
     }
 
-    public void create(ProductCreationRequest productCreationRequest) {
+    public void create(ProductCreationRequest productCreationRequest) throws IOException, DbxException {
         ProductEntity product = new ProductEntity();
         product.setName(productCreationRequest.getName());
         product.setPrice(productCreationRequest.getPrice());
         product.setDescription(productCreationRequest.getDescription());
         product.setAmount(productCreationRequest.getAmount());
+        String extension = FilenameUtils.getExtension(productCreationRequest.getFile().getOriginalFilename());
+        String imagePath = String.format("/%s.%s", product.getName(), extension);
+        product.setImagePath(imagePath);
+        String imageUrl = dropboxService.uploadFile(imagePath, productCreationRequest.getFile().getInputStream());
+        product.setImageUrl(imageUrl);
         productRepository.save(product);
     }
 
     public boolean delete(UUID id) {
         if (productRepository.existsById(id)) {
+            dropboxService.deleteFile(getProduct(id).getImagePath());
             productRepository.deleteById(id);
             return true;
         }

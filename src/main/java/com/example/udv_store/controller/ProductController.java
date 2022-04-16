@@ -21,7 +21,7 @@ public class ProductController {
     }
 
     @PostMapping("/admin/product")
-    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreationRequest productCreationRequest) {
+    public ResponseEntity<?> createProduct(@ModelAttribute @Valid ProductCreationRequest productCreationRequest) {
         try {
             productService.create(productCreationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
