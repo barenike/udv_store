@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 @Data
 public class AuthRequest implements Serializable {
-
     @NotNull
     private String email;
 

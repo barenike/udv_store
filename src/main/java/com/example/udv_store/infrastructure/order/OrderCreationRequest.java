@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class OrderCreationRequest {
-
     @NotNull
     List<OrderCreationDetails> orderCreationDetails;
 }

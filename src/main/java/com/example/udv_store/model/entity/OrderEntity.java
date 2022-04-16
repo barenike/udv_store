@@ -9,7 +9,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "orders")
 public class OrderEntity {
-
     @Id
     @Column(unique = true, name = "id", nullable = false)
     @GeneratedValue(generator = "uuid")

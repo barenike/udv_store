@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
-
     UserEntity findByEmail(String email);
 
     @Query("select u from UserEntity u where u.id = ?1")

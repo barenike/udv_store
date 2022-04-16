@@ -12,7 +12,6 @@ import java.util.Date;
 @Component
 @Log
 public class JwtProvider {
-
     @Value("$(jwt.secret)")
     private String jwtSecret;
 

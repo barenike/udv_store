@@ -7,6 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface OrderRecordRepository extends JpaRepository<OrderRecordEntity, UUID> {
-
     List<OrderRecordEntity> findByOrderId(UUID orderId);
 }

@@ -6,7 +6,6 @@ import javax.validation.constraints.NotNull;
 
 @Data
 public class UserBalanceRequest {
-
     @NotNull
     private String userId;
 

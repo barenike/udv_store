@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
-
     @Query("select p from ProductEntity p where p.id = ?1")
     ProductEntity findByProductId(UUID id);
 }
