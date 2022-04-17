@@ -1,10 +1,7 @@
 package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
-import com.example.udv_store.infrastructure.user.AuthRequest;
-import com.example.udv_store.infrastructure.user.AuthResponse;
-import com.example.udv_store.infrastructure.user.RegistrationRequest;
-import com.example.udv_store.infrastructure.user.UserBalanceRequest;
+import com.example.udv_store.infrastructure.user.*;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -40,13 +37,29 @@ public class UserController {
     @PostMapping("/auth")
     public ResponseEntity<AuthResponse> auth(@RequestBody @Valid AuthRequest authRequest) {
         try {
-            UserEntity userEntity = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
-            if (userEntity != null) {
-                String token = jwtProvider.generateToken(String.valueOf(userEntity.getId()));
+            UserEntity user = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
+            if (user != null) {
+                String token = jwtProvider.generateToken(String.valueOf(user.getId()));
                 return new ResponseEntity<>(new AuthResponse(token), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<InfoResponse> getInfo(@RequestHeader(name = "Authorization") String token) {
+        try {
+            String userId = jwtProvider.getUserIdFromToken(token.substring(7));
+            UserEntity user = userService.findByUserId(userId);
+            return new ResponseEntity<>(new InfoResponse(
+                    user.getId().toString(),
+                    user.getRoleEntity().getRoleId(),
+                    user.getEmail(),
+                    user.getUserBalance()),
+                    HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -64,7 +77,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/admin/userBalance")
+    @PostMapping("/admin/user_balance")
     public ResponseEntity<?> changeUserBalance(@RequestBody @Valid UserBalanceRequest userBalanceRequest) {
         try {
             userService.changeUserBalance(userBalanceRequest.getUserId(), userBalanceRequest.getUserBalance());

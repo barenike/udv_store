@@ -1,5 +1,6 @@
 package com.example.udv_store.controller;
 
+import com.example.udv_store.infrastructure.product.ProductAmountRequest;
 import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
@@ -25,6 +26,16 @@ public class ProductController {
         try {
             productService.create(productCreationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/admin/product_amount")
+    public ResponseEntity<?> changeProductAmount(@RequestBody @Valid ProductAmountRequest productAmountRequest) {
+        try {
+            productService.changeProductAmount(productAmountRequest.getProductId(), productAmountRequest.getAmount());
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

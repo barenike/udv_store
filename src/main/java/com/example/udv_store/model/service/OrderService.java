@@ -50,6 +50,7 @@ public class OrderService {
         order.setTotal(total);
         orderRepository.save(order);
         orderRecordService.create(orderCreationRequest.getOrderCreationDetails(), order.getId());
+        productService.changeProductAmount(orderCreationRequest.getOrderCreationDetails());
         userService.changeUserBalance(userId, userBalance - total);
     }
 
@@ -95,10 +96,13 @@ public class OrderService {
             Integer total = order.getTotal();
             List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(id);
             for (OrderRecordEntity orderRecord : orderRecords) {
+                String productId = String.valueOf(orderRecord.getProductId());
+                Integer quantity = orderRecord.getQuantity();
                 boolean isDeleted = orderRecordService.delete(orderRecord.getId());
                 if (!isDeleted) {
                     throw new Exception();
                 }
+                productService.changeProductAmount(productId, productService.findByProductId(productId).getAmount() + quantity);
             }
             orderRepository.deleteById(id);
             userService.changeUserBalance(userId, userBalance + total);

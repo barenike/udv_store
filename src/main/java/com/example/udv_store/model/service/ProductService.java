@@ -1,6 +1,7 @@
 package com.example.udv_store.model.service;
 
 import com.dropbox.core.DbxException;
+import com.example.udv_store.infrastructure.order.OrderCreationDetails;
 import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
@@ -45,6 +46,24 @@ public class ProductService {
         String imageUrl = dropboxService.uploadFile(imagePath, productCreationRequest.getFile().getInputStream());
         product.setImageUrl(imageUrl);
         productRepository.save(product);
+    }
+
+    public void changeProductAmount(String productId, Integer amount) {
+        ProductEntity product = findByProductId(productId);
+        if (product == null) {
+            throw new IllegalArgumentException();
+        }
+        product.setAmount(amount);
+        productRepository.save(product);
+    }
+
+    public void changeProductAmount(List<OrderCreationDetails> orderCreationDetails) {
+        orderCreationDetails.forEach(details -> changeProductAmount(details.getProductId(),
+                findByProductId(details.getProductId()).getAmount() - details.getQuantity()));
+    }
+
+    public ProductEntity findByProductId(String productId) {
+        return productRepository.findByProductId(UUID.fromString(productId));
     }
 
     public boolean delete(UUID id) {
