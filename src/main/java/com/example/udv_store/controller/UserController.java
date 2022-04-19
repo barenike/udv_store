@@ -28,7 +28,7 @@ public class UserController {
             userService.create(registrationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

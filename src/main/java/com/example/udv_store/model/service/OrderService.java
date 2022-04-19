@@ -11,6 +11,7 @@ import com.example.udv_store.model.repository.OrderRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -32,6 +33,7 @@ public class OrderService {
         this.jwtProvider = jwtProvider;
     }
 
+    @Transactional
     public void create(OrderCreationRequest orderCreationRequest, String token) {
         OrderEntity order = new OrderEntity();
         order.setStatus(OrderStatusEnum.CREATED.toString());
@@ -84,6 +86,7 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
+    @Transactional
     public boolean delete(UUID id) throws Exception {
         if (orderRepository.existsById(id)) {
             OrderEntity order = orderRepository.getById(id);
