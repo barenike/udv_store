@@ -2,33 +2,61 @@ package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
 import com.example.udv_store.infrastructure.user.*;
+import com.example.udv_store.model.entity.TokenEntity;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.service.UserService;
+import com.example.udv_store.model.service.email_verification.OnRegistrationCompleteEvent;
+import com.example.udv_store.model.service.email_verification.TokenService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.UUID;
 
 @RestController
 public class UserController {
     private final UserService userService;
+    private final TokenService tokenService;
     private final JwtProvider jwtProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserController(UserService userService, JwtProvider jwtProvider) {
+    public UserController(UserService userService, TokenService tokenService, JwtProvider jwtProvider, ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
+        this.tokenService = tokenService;
         this.jwtProvider = jwtProvider;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody @Valid RegistrationRequest registrationRequest) {
+    public ResponseEntity<?> registerUser(@RequestBody @Valid RegistrationRequest registrationRequest,
+                                          HttpServletRequest request) {
         try {
-            userService.create(registrationRequest);
+            UserEntity user = userService.create(registrationRequest);
+            String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(user, appUrl));
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/registrationConfirm")
+    public ResponseEntity<?> confirmRegistration(@RequestParam("token") String tokenString) {
+        try {
+            TokenEntity token = tokenService.getToken(tokenString);
+            if (token == null) {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+            UserEntity user = token.getUser();
+            user.setEnabled(true);
+            userService.enableUser(user);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -38,11 +66,13 @@ public class UserController {
     public ResponseEntity<AuthResponse> auth(@RequestBody @Valid AuthRequest authRequest) {
         try {
             UserEntity user = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
-            if (user != null) {
+            if (user == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            } else if (!user.isEnabled()) {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            } else {
                 String token = jwtProvider.generateToken(String.valueOf(user.getId()));
                 return new ResponseEntity<>(new AuthResponse(token), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

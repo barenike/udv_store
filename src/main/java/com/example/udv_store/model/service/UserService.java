@@ -5,6 +5,7 @@ import com.example.udv_store.model.entity.RoleEntity;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.repository.RoleRepository;
 import com.example.udv_store.model.repository.UserRepository;
+import com.example.udv_store.model.service.email_verification.TokenService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,24 +17,33 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void create(RegistrationRequest registrationRequest) {
+    public UserEntity create(RegistrationRequest registrationRequest) {
         if (findByEmail(registrationRequest.getEmail()) != null) {
             throw new AccessDeniedException("This email is already registered.");
         }
         UserEntity user = new UserEntity();
         RoleEntity userRole = roleRepository.findByName("ROLE_USER");
         user.setRoleEntity(userRole);
+        user.setEnabled(false);
         user.setEmail(registrationRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
         user.setUserBalance(0);
+        userRepository.save(user);
+        return user;
+    }
+
+    public void enableUser(UserEntity user) {
+        user.setEnabled(true);
         userRepository.save(user);
     }
 
@@ -69,6 +79,10 @@ public class UserService {
 
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
+            boolean isTokenDeleted = tokenService.deleteByUserId(userId);
+            if (!isTokenDeleted) {
+                return false;
+            }
             userRepository.deleteById(userId);
             return true;
         }

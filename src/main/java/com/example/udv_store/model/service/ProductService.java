@@ -6,7 +6,6 @@ import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
 import com.example.udv_store.model.entity.ProductEntity;
 import com.example.udv_store.model.repository.ProductRepository;
-import com.example.udv_store.model.service.dropbox.DropboxService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +42,7 @@ public class ProductService {
         String extension = FilenameUtils.getExtension(productCreationRequest.getFile().getOriginalFilename());
         String imagePath = String.format("/%s.%s", product.getName(), extension);
         product.setImagePath(imagePath);
-        String imageUrl = dropboxService.uploadFile(imagePath, productCreationRequest.getFile().getInputStream());
+        String imageUrl = dropboxService.upload(imagePath, productCreationRequest.getFile().getInputStream());
         product.setImageUrl(imageUrl);
         productRepository.save(product);
     }
@@ -66,9 +65,9 @@ public class ProductService {
         return productRepository.findByProductId(UUID.fromString(productId));
     }
 
-    public boolean delete(UUID id) {
+    public boolean delete(UUID id) throws DbxException {
         if (productRepository.existsById(id)) {
-            dropboxService.deleteFile(getProduct(id).getImagePath());
+            dropboxService.delete(getProduct(id).getImagePath());
             productRepository.deleteById(id);
             return true;
         }

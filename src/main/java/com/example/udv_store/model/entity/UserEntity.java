@@ -27,6 +27,9 @@ public class UserEntity {
     @Column(name = "user_balance", nullable = false)
     private Integer userBalance;
 
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
+
     public UserEntity() {
     }
 
@@ -68,5 +71,13 @@ public class UserEntity {
 
     public void setUserBalance(Integer userBalance) {
         this.userBalance = userBalance;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
