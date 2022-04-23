@@ -6,8 +6,10 @@ import javax.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tokens")
-public class TokenEntity {
+@Table(name = "password_reset_tokens")
+public class PasswordResetTokenEntity {
+    private static final int EXPIRATION = 60 * 24;
+
     @Id
     @Column(unique = true, name = "id", nullable = false)
     @GeneratedValue(generator = "uuid")
@@ -21,7 +23,10 @@ public class TokenEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    public TokenEntity() {
+    //@Column(name = "expiry_date", nullable = false)
+    //private Date expiryDate;
+
+    public PasswordResetTokenEntity() {
     }
 
     public UUID getId() {
@@ -47,4 +52,12 @@ public class TokenEntity {
     public void setUser(UserEntity user) {
         this.user = user;
     }
+
+    /*public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
+    }*/
 }

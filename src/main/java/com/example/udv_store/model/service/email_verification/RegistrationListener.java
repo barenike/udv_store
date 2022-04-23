@@ -10,11 +10,11 @@ import java.util.UUID;
 
 @Component
 public class RegistrationListener implements ApplicationListener<OnRegistrationCompleteEvent> {
-    private final TokenService tokenService;
+    private final VerificationTokenService verificationTokenService;
     private final JavaMailSender mailSender;
 
-    public RegistrationListener(TokenService tokenService, JavaMailSender mailSender) {
-        this.tokenService = tokenService;
+    public RegistrationListener(VerificationTokenService verificationTokenService, JavaMailSender mailSender) {
+        this.verificationTokenService = verificationTokenService;
         this.mailSender = mailSender;
     }
 
@@ -26,8 +26,7 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
     private void confirmRegistration(final OnRegistrationCompleteEvent event) {
         UserEntity user = event.getUser();
         final String token = UUID.randomUUID().toString();
-        tokenService.createToken(user, token);
-
+        verificationTokenService.createToken(user, token);
         SimpleMailMessage email = constructEmailMessage(event, user, token);
         mailSender.send(email);
     }
@@ -35,8 +34,8 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
     private SimpleMailMessage constructEmailMessage(OnRegistrationCompleteEvent event, UserEntity user, String token) {
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation for UDV Store";
-        String confirmationUrl = event.getAppUrl() + "/registrationConfirm?token=" + token;
-        String message = "You registered successfully. We will send you a confirmation message to your email account.";
+        String confirmationUrl = event.getAppUrl() + "/register/confirm?token=" + token;
+        String message = "Please, click on this link if you want to complete registration in UDV Store.";
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom("no-reply-udv@mail.ru");
         email.setTo(recipientAddress);

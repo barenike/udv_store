@@ -2,11 +2,12 @@ package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
 import com.example.udv_store.infrastructure.user.*;
-import com.example.udv_store.model.entity.TokenEntity;
 import com.example.udv_store.model.entity.UserEntity;
+import com.example.udv_store.model.entity.VerificationTokenEntity;
+import com.example.udv_store.model.service.PasswordResetTokenService;
 import com.example.udv_store.model.service.UserService;
 import com.example.udv_store.model.service.email_verification.OnRegistrationCompleteEvent;
-import com.example.udv_store.model.service.email_verification.TokenService;
+import com.example.udv_store.model.service.email_verification.VerificationTokenService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,15 @@ import java.util.UUID;
 @RestController
 public class UserController {
     private final UserService userService;
-    private final TokenService tokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
+    private final VerificationTokenService verificationTokenService;
     private final JwtProvider jwtProvider;
     private final ApplicationEventPublisher eventPublisher;
 
-    public UserController(UserService userService, TokenService tokenService, JwtProvider jwtProvider, ApplicationEventPublisher eventPublisher) {
+    public UserController(UserService userService, PasswordResetTokenService passwordResetTokenService, VerificationTokenService verificationTokenService, JwtProvider jwtProvider, ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
-        this.tokenService = tokenService;
+        this.passwordResetTokenService = passwordResetTokenService;
+        this.verificationTokenService = verificationTokenService;
         this.jwtProvider = jwtProvider;
         this.eventPublisher = eventPublisher;
     }
@@ -46,10 +49,10 @@ public class UserController {
         }
     }
 
-    @GetMapping("/registrationConfirm")
+    @GetMapping("/register/confirm")
     public ResponseEntity<?> confirmRegistration(@RequestParam("token") String tokenString) {
         try {
-            TokenEntity token = tokenService.getToken(tokenString);
+            VerificationTokenEntity token = verificationTokenService.getToken(tokenString);
             if (token == null) {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
@@ -90,6 +93,35 @@ public class UserController {
                     user.getEmail(),
                     user.getUserBalance()),
                     HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/reset/password/{email}")
+    public ResponseEntity<?> sendResetPasswordMail(@PathVariable(name = "email") String email,
+                                                   HttpServletRequest request) {
+        try {
+            UserEntity user = userService.findByEmail(email);
+            if (user == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+            String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+            passwordResetTokenService.resetPassword(user, appUrl);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/reset/password/{token}")
+    public ResponseEntity<?> resetPassword(@PathVariable("token") String token,
+                                           @RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        try {
+            passwordResetTokenService.validatePasswordResetToken(token);
+            UserEntity user = passwordResetTokenService.getToken(token).getUser();
+            userService.changePassword(user, resetPasswordRequest);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

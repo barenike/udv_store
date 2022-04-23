@@ -1,11 +1,12 @@
 package com.example.udv_store.model.service;
 
 import com.example.udv_store.infrastructure.user.RegistrationRequest;
+import com.example.udv_store.infrastructure.user.ResetPasswordRequest;
 import com.example.udv_store.model.entity.RoleEntity;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.repository.RoleRepository;
 import com.example.udv_store.model.repository.UserRepository;
-import com.example.udv_store.model.service.email_verification.TokenService;
+import com.example.udv_store.model.service.email_verification.VerificationTokenService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,15 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final TokenService tokenService;
+    private final VerificationTokenService verificationTokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, VerificationTokenService verificationTokenService, PasswordResetTokenService passwordResetTokenService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.tokenService = tokenService;
+        this.verificationTokenService = verificationTokenService;
+        this.passwordResetTokenService = passwordResetTokenService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -56,6 +59,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void changePassword(UserEntity user, ResetPasswordRequest resetPasswordRequest) {
+        if (user == null) {
+            throw new IllegalArgumentException();
+        }
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
+        userRepository.save(user);
+    }
+
     public List<UserEntity> readAll() {
         return userRepository.findAll();
     }
@@ -79,8 +90,9 @@ public class UserService {
 
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
-            boolean isTokenDeleted = tokenService.deleteByUserId(userId);
-            if (!isTokenDeleted) {
+            boolean isVerificationTokenDeleted = verificationTokenService.deleteByUserId(userId);
+            boolean isResetPasswordTokenDeleted = passwordResetTokenService.deleteByUserId(userId);
+            if (!isVerificationTokenDeleted || !isResetPasswordTokenDeleted) {
                 return false;
             }
             userRepository.deleteById(userId);

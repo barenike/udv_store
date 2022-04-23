@@ -33,6 +33,12 @@ public class OrderService {
         this.jwtProvider = jwtProvider;
     }
 
+    protected static Date getCurrentYekaterinburgDate() {
+        DateTimeZone zoneYekaterinburg = DateTimeZone.forID("Asia/Yekaterinburg");
+        DateTime now = DateTime.now(zoneYekaterinburg);
+        return now.toDate();
+    }
+
     @Transactional
     public void create(OrderCreationRequest orderCreationRequest, String token) {
         OrderEntity order = new OrderEntity();
@@ -70,12 +76,6 @@ public class OrderService {
         } else {
             return false;
         }
-    }
-
-    private Date getCurrentYekaterinburgDate() {
-        DateTimeZone zoneYekaterinburg = DateTimeZone.forID("Asia/Yekaterinburg");
-        DateTime now = DateTime.now(zoneYekaterinburg);
-        return now.toDate();
     }
 
     public List<OrderEntity> findAllOrders() {
