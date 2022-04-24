@@ -1,66 +1,86 @@
 package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
+import com.example.udv_store.exceptions.JavascriptWebTokenIsNotFoundException;
+import com.example.udv_store.exceptions.NotEnoughCoinsException;
+import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
 import com.example.udv_store.model.entity.OrderEntity;
+import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.service.OrderService;
+import com.example.udv_store.model.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 public class OrderController {
     private final OrderService orderService;
+    private final UserService userService;
     private final JwtProvider jwtProvider;
 
-    public OrderController(OrderService orderService, JwtProvider jwtProvider) {
+    public OrderController(OrderService orderService, UserService userService, JwtProvider jwtProvider) {
         this.orderService = orderService;
+        this.userService = userService;
         this.jwtProvider = jwtProvider;
     }
 
     @PostMapping("/user/orders")
-    public ResponseEntity<?> createOrder(@RequestBody OrderCreationRequest orderCreationRequest,
+    public ResponseEntity<?> createOrder(@RequestBody @Valid OrderCreationRequest orderCreationRequest,
                                          @RequestHeader(name = "Authorization") String token) {
         try {
             orderService.create(orderCreationRequest, token);
             return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (JavascriptWebTokenIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (NotEnoughCoinsException | ProductIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/user/orders")
-    public ResponseEntity<List<OrderEntity>> getMyOrders(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<?> getMyOrders(@RequestHeader(name = "Authorization") String token) {
         try {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
-            final List<OrderEntity> orders = orderService.findOrdersByUserId(UUID.fromString(userId));
+            UserEntity user = userService.findByUserId(userId);
+            if (user == null) {
+                throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+            }
+            final List<OrderEntity> orders = orderService.findOrdersByUserId(user.getId());
             return orders != null && !orders.isEmpty()
                     ? new ResponseEntity<>(orders, HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.OK);
+        } catch (JavascriptWebTokenIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @DeleteMapping("/user/orders/{orderId}")
-    public ResponseEntity<List<OrderEntity>> deleteMyOrder(@PathVariable(name = "orderId") UUID orderID) {
+    public ResponseEntity<?> deleteMyOrder(@PathVariable(name = "orderId") UUID orderID) {
         try {
             boolean isDeleted = orderService.delete(orderID);
             return isDeleted
                     ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+        } catch (ProductIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/admin/orders")
-    public ResponseEntity<List<OrderEntity>> manipulateOrders(@RequestParam(value = "userId", required = false) UUID userId,
-                                                              @RequestParam(value = "orderId", required = false) UUID orderId,
-                                                              @RequestParam(value = "status", required = false) String status) {
+    public ResponseEntity<?> manipulateOrders(@RequestParam(value = "userId", required = false) UUID userId,
+                                              @RequestParam(value = "orderId", required = false) UUID orderId,
+                                              @RequestParam(value = "status", required = false) String status) {
         try {
             if (userId == null && orderId == null) {
                 final List<OrderEntity> orders = orderService.findAllOrders();
@@ -79,6 +99,8 @@ public class OrderController {
                         ? new ResponseEntity<>(HttpStatus.OK)
                         : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
             }
+        } catch (ProductIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

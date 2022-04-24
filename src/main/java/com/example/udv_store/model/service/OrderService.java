@@ -1,12 +1,12 @@
 package com.example.udv_store.model.service;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
+import com.example.udv_store.exceptions.JavascriptWebTokenIsNotFoundException;
+import com.example.udv_store.exceptions.NotEnoughCoinsException;
+import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationDetails;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
-import com.example.udv_store.model.entity.OrderEntity;
-import com.example.udv_store.model.entity.OrderRecordEntity;
-import com.example.udv_store.model.entity.OrderStatusEnum;
-import com.example.udv_store.model.entity.UserEntity;
+import com.example.udv_store.model.entity.*;
 import com.example.udv_store.model.repository.OrderRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -44,22 +44,25 @@ public class OrderService {
         OrderEntity order = new OrderEntity();
         order.setStatus(OrderStatusEnum.CREATED.toString());
         String userId = jwtProvider.getUserIdFromToken(token.substring(7));
+        UserEntity user = userService.findByUserId(userId);
+        if (user == null) {
+            throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+        }
         order.setUserId(UUID.fromString(userId));
         order.setCreationDate(getCurrentYekaterinburgDate());
         int total = 0;
         for (OrderCreationDetails orderCreationDetails : orderCreationRequest.getOrderCreationDetails()) {
             total += productService.getProduct(UUID.fromString(orderCreationDetails.getProductId())).getPrice() * orderCreationDetails.getQuantity();
         }
-        UserEntity user = userService.findByUserId(userId);
         Integer userBalance = user.getUserBalance();
         if (total > userBalance) {
-            throw new IllegalArgumentException();
+            throw new NotEnoughCoinsException("The user does not have enough coins to pay for this order.");
         }
         order.setTotal(total);
         orderRepository.save(order);
         orderRecordService.create(orderCreationRequest.getOrderCreationDetails(), order.getId());
         productService.changeProductAmount(orderCreationRequest.getOrderCreationDetails());
-        userService.changeUserBalance(userId, userBalance - total);
+        userService.changeUserBalance(user, userBalance - total);
     }
 
     public boolean changeStatus(UUID id, String status) {
@@ -99,16 +102,19 @@ public class OrderService {
             Integer total = order.getTotal();
             List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(id);
             for (OrderRecordEntity orderRecord : orderRecords) {
-                String productId = String.valueOf(orderRecord.getProductId());
+                ProductEntity product = productService.getProduct(orderRecord.getProductId());
+                if (product == null) {
+                    throw new ProductIsNotFoundException("Product with this UUID does not exist.");
+                }
                 Integer quantity = orderRecord.getQuantity();
                 boolean isDeleted = orderRecordService.delete(orderRecord.getId());
                 if (!isDeleted) {
                     throw new Exception();
                 }
-                productService.changeProductAmount(productId, productService.findByProductId(productId).getAmount() + quantity);
+                productService.changeProductAmount(product, product.getAmount() + quantity);
             }
             orderRepository.deleteById(id);
-            userService.changeUserBalance(userId, userBalance + total);
+            userService.changeUserBalance(user, userBalance + total);
             return true;
         } else {
             return false;

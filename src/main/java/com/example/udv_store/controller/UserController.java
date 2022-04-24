@@ -1,7 +1,9 @@
 package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
+import com.example.udv_store.exceptions.*;
 import com.example.udv_store.infrastructure.user.*;
+import com.example.udv_store.model.entity.PasswordResetTokenEntity;
 import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.entity.VerificationTokenEntity;
 import com.example.udv_store.model.service.PasswordResetTokenService;
@@ -11,7 +13,6 @@ import com.example.udv_store.model.service.email_verification.VerificationTokenS
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,7 +43,7 @@ public class UserController {
             String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(user, appUrl));
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (AccessDeniedException e) {
+        } catch (EmailAlreadyRegisteredException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -54,45 +55,56 @@ public class UserController {
         try {
             VerificationTokenEntity token = verificationTokenService.getToken(tokenString);
             if (token == null) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                throw new TokenIsNotFoundException("This verification token doesn't exist.");
             }
             UserEntity user = token.getUser();
             user.setEnabled(true);
             userService.enableUser(user);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (TokenIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @PostMapping("/auth")
-    public ResponseEntity<AuthResponse> auth(@RequestBody @Valid AuthRequest authRequest) {
+    public ResponseEntity<?> auth(@RequestBody @Valid AuthRequest authRequest) {
         try {
             UserEntity user = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
             if (user == null) {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                throw new IncorrectEmailOrPasswordException("Incorrect username or password.");
             } else if (!user.isEnabled()) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                throw new NotEnabledUserException("Please, complete registration process by clicking on the link in email we sent you.");
             } else {
                 String token = jwtProvider.generateToken(String.valueOf(user.getId()));
                 return new ResponseEntity<>(new AuthResponse(token), HttpStatus.OK);
             }
+        } catch (IncorrectEmailOrPasswordException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (NotEnabledUserException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/info")
-    public ResponseEntity<InfoResponse> getInfo(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<?> getInfo(@RequestHeader(name = "Authorization") String token) {
         try {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
             UserEntity user = userService.findByUserId(userId);
+            if (user == null) {
+                throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+            }
             return new ResponseEntity<>(new InfoResponse(
                     user.getId().toString(),
                     user.getRoleEntity().getRoleId(),
                     user.getEmail(),
                     user.getUserBalance()),
                     HttpStatus.OK);
+        } catch (JavascriptWebTokenIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -104,11 +116,13 @@ public class UserController {
         try {
             UserEntity user = userService.findByEmail(email);
             if (user == null) {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                throw new UserIsNotFoundByEmailException("There is no account with this email.");
             }
             String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
             passwordResetTokenService.resetPassword(user, appUrl);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (UserIsNotFoundByEmailException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -118,10 +132,15 @@ public class UserController {
     public ResponseEntity<?> resetPassword(@PathVariable("token") String token,
                                            @RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
         try {
-            passwordResetTokenService.validatePasswordResetToken(token);
-            UserEntity user = passwordResetTokenService.getToken(token).getUser();
+            PasswordResetTokenEntity passwordResetToken = passwordResetTokenService.validatePasswordResetToken(token);
+            if (passwordResetToken == null) {
+                throw new TokenIsNotFoundException("This password reset token does not exist.");
+            }
+            UserEntity user = passwordResetToken.getUser();
             userService.changePassword(user, resetPasswordRequest);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (TokenIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -142,8 +161,14 @@ public class UserController {
     @PostMapping("/admin/user_balance")
     public ResponseEntity<?> changeUserBalance(@RequestBody @Valid UserBalanceRequest userBalanceRequest) {
         try {
-            userService.changeUserBalance(userBalanceRequest.getUserId(), userBalanceRequest.getUserBalance());
+            UserEntity user = userService.findByUserId(userBalanceRequest.getUserId());
+            if (user == null) {
+                throw new UserIsNotFoundException("User is not found.");
+            }
+            userService.changeUserBalance(user, userBalanceRequest.getUserBalance());
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (UserIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

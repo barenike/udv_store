@@ -19,11 +19,8 @@ public class PasswordResetTokenService {
         this.mailSender = mailSender;
     }
 
-    public void validatePasswordResetToken(String token) {
-        PasswordResetTokenEntity passwordResetToken = getToken(token);
-        if (passwordResetToken == null) {
-            throw new IllegalArgumentException();
-        }
+    public PasswordResetTokenEntity validatePasswordResetToken(String token) {
+        return getToken(token);
     }
 
     public void createToken(UserEntity user, String token) {
@@ -37,13 +34,11 @@ public class PasswordResetTokenService {
         return passwordResetTokenRepository.findByToken(token);
     }
 
-    public boolean deleteByUserId(UUID userId) {
+    public void deleteByUserId(UUID userId) {
         PasswordResetTokenEntity token = passwordResetTokenRepository.findByUserId(userId);
         if (token != null) {
             passwordResetTokenRepository.deleteById(token.getId());
-            return true;
         }
-        return false;
     }
 
     public void resetPassword(UserEntity user, String appUrl) {

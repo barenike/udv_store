@@ -1,6 +1,6 @@
 package com.example.udv_store.model.service;
 
-import com.dropbox.core.DbxException;
+import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationDetails;
 import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
@@ -33,7 +33,7 @@ public class ProductService {
         return productRepository.findByProductId(id);
     }
 
-    public void create(ProductCreationRequest productCreationRequest) throws IOException, DbxException {
+    public void create(ProductCreationRequest productCreationRequest) throws IOException {
         ProductEntity product = new ProductEntity();
         product.setName(productCreationRequest.getName());
         product.setPrice(productCreationRequest.getPrice());
@@ -47,11 +47,17 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    // Maybe, I will refactor this later
     public void changeProductAmount(String productId, Integer amount) {
         ProductEntity product = findByProductId(productId);
         if (product == null) {
-            throw new IllegalArgumentException();
+            throw new ProductIsNotFoundException("Product with this UUID does not exist.");
         }
+        product.setAmount(amount);
+        productRepository.save(product);
+    }
+
+    public void changeProductAmount(ProductEntity product, Integer amount) {
         product.setAmount(amount);
         productRepository.save(product);
     }
@@ -65,7 +71,7 @@ public class ProductService {
         return productRepository.findByProductId(UUID.fromString(productId));
     }
 
-    public boolean delete(UUID id) throws DbxException {
+    public boolean delete(UUID id) {
         if (productRepository.existsById(id)) {
             dropboxService.delete(getProduct(id).getImagePath());
             productRepository.deleteById(id);

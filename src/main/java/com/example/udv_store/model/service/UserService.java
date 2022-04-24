@@ -1,5 +1,6 @@
 package com.example.udv_store.model.service;
 
+import com.example.udv_store.exceptions.EmailAlreadyRegisteredException;
 import com.example.udv_store.infrastructure.user.RegistrationRequest;
 import com.example.udv_store.infrastructure.user.ResetPasswordRequest;
 import com.example.udv_store.model.entity.RoleEntity;
@@ -7,7 +8,6 @@ import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.repository.RoleRepository;
 import com.example.udv_store.model.repository.UserRepository;
 import com.example.udv_store.model.service.email_verification.VerificationTokenService;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class UserService {
 
     public UserEntity create(RegistrationRequest registrationRequest) {
         if (findByEmail(registrationRequest.getEmail()) != null) {
-            throw new AccessDeniedException("This email is already registered.");
+            throw new EmailAlreadyRegisteredException("An account with this email address already exists.");
         }
         UserEntity user = new UserEntity();
         RoleEntity userRole = roleRepository.findByName("ROLE_USER");
@@ -50,19 +50,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void changeUserBalance(String userId, Integer userBalance) {
-        UserEntity user = findByUserId(userId);
-        if (user == null) {
-            throw new IllegalArgumentException();
-        }
+    public void changeUserBalance(UserEntity user, Integer userBalance) {
         user.setUserBalance(userBalance);
         userRepository.save(user);
     }
 
     public void changePassword(UserEntity user, ResetPasswordRequest resetPasswordRequest) {
-        if (user == null) {
-            throw new IllegalArgumentException();
-        }
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
         userRepository.save(user);
     }
@@ -91,8 +84,8 @@ public class UserService {
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
             boolean isVerificationTokenDeleted = verificationTokenService.deleteByUserId(userId);
-            boolean isResetPasswordTokenDeleted = passwordResetTokenService.deleteByUserId(userId);
-            if (!isVerificationTokenDeleted || !isResetPasswordTokenDeleted) {
+            passwordResetTokenService.deleteByUserId(userId);
+            if (!isVerificationTokenDeleted) {
                 return false;
             }
             userRepository.deleteById(userId);

@@ -1,5 +1,8 @@
 package com.example.udv_store.controller;
 
+import com.example.udv_store.exceptions.ImageDeleteInDropboxFailedException;
+import com.example.udv_store.exceptions.ImageUploadToDropboxFailedException;
+import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.product.ProductAmountRequest;
 import com.example.udv_store.infrastructure.product.ProductCreationRequest;
 import com.example.udv_store.infrastructure.product.ProductResponse;
@@ -26,6 +29,8 @@ public class ProductController {
         try {
             productService.create(productCreationRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (ImageUploadToDropboxFailedException | ImageDeleteInDropboxFailedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -34,8 +39,14 @@ public class ProductController {
     @PostMapping("/admin/product_amount")
     public ResponseEntity<?> changeProductAmount(@RequestBody @Valid ProductAmountRequest productAmountRequest) {
         try {
-            productService.changeProductAmount(productAmountRequest.getProductId(), productAmountRequest.getAmount());
+            ProductEntity product = productService.findByProductId(productAmountRequest.getProductId());
+            if (product == null) {
+                throw new ProductIsNotFoundException("Product with this UUID does not exist.");
+            }
+            productService.changeProductAmount(product, productAmountRequest.getAmount());
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (ProductIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -72,6 +83,8 @@ public class ProductController {
             return isDeleted
                     ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+        } catch (ImageDeleteInDropboxFailedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
