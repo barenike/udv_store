@@ -20,7 +20,7 @@ public class DropboxService {
     public String upload(String path, InputStream inputStream) {
         try {
             client.files().uploadBuilder(path).uploadAndFinish(inputStream);
-            return client.sharing().createSharedLinkWithSettings(path).getUrl();
+            return client.sharing().createSharedLinkWithSettings(path).getUrl().replaceAll("dl=0", "raw=1");
         } catch (IOException | DbxException e) {
             throw new ImageUploadToDropboxFailedException("Image upload to Dropbox failed.", e);
         }
