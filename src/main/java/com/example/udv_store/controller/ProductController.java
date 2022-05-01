@@ -53,9 +53,9 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<List<ProductResponse>> getProducts() {
+    public ResponseEntity<List<ProductEntity>> getProducts() {
         try {
-            final List<ProductResponse> products = productService.getAllProducts();
+            final List<ProductEntity> products = productService.getAllProducts();
             return products != null && !products.isEmpty()
                     ? new ResponseEntity<>(products, HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.OK);
@@ -64,7 +64,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/products/{productId}")
+    /*@GetMapping("/products/{productId}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable(name = "productId") UUID productId) {
         try {
             final ProductEntity product = productService.getProduct(productId);
@@ -74,7 +74,7 @@ public class ProductController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
+    }*/
 
     @DeleteMapping("/admin/product/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable(name = "productId") UUID productId) {

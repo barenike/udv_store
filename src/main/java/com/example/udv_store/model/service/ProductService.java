@@ -10,6 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,9 +25,8 @@ public class ProductService {
         this.dropboxService = dropboxService;
     }
 
-    public List<ProductResponse> getAllProducts() {
-        List<ProductEntity> products = productRepository.findAll();
-        return products.stream().map(product -> new ProductResponse(product.getId().toString(), product.getName(), product.getPrice(), product.getImageUrl())).collect(Collectors.toList());
+    public List<ProductEntity> getAllProducts() {
+        return productRepository.findAll();
     }
 
     public ProductEntity getProduct(UUID id) {
