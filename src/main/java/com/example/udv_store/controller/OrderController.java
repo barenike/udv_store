@@ -1,7 +1,7 @@
 package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
-import com.example.udv_store.exceptions.JavascriptWebTokenIsNotFoundException;
+import com.example.udv_store.exceptions.JSONWebTokenIsNotFoundException;
 import com.example.udv_store.exceptions.NotEnoughCoinsException;
 import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
@@ -35,7 +35,7 @@ public class OrderController {
         try {
             orderService.create(orderCreationRequest, token);
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (JavascriptWebTokenIsNotFoundException e) {
+        } catch (JSONWebTokenIsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (NotEnoughCoinsException | ProductIsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
@@ -50,13 +50,13 @@ public class OrderController {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
             UserEntity user = userService.findByUserId(userId);
             if (user == null) {
-                throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+                throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
             }
             final List<OrderEntity> orders = orderService.findOrdersByUserId(user.getId());
             return orders != null && !orders.isEmpty()
                     ? new ResponseEntity<>(orders, HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.OK);
-        } catch (JavascriptWebTokenIsNotFoundException e) {
+        } catch (JSONWebTokenIsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

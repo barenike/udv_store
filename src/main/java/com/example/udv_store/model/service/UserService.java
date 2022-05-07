@@ -1,6 +1,8 @@
 package com.example.udv_store.model.service;
 
 import com.example.udv_store.exceptions.EmailAlreadyRegisteredException;
+import com.example.udv_store.exceptions.IncorrectEmailException;
+import com.example.udv_store.exceptions.IncorrectPasswordException;
 import com.example.udv_store.infrastructure.user.RegistrationRequest;
 import com.example.udv_store.infrastructure.user.ResetPasswordRequest;
 import com.example.udv_store.model.entity.RoleEntity;
@@ -78,7 +80,14 @@ public class UserService {
 
     public UserEntity findByEmailAndPassword(String email, String password) {
         UserEntity user = findByEmail(email);
-        return user != null && passwordEncoder.matches(password, user.getPassword()) ? user : null;
+        if (user == null) {
+            throw new IncorrectEmailException("Incorrect email.");
+        }
+        boolean isPasswordCorrect = passwordEncoder.matches(password, user.getPassword());
+        if (!isPasswordCorrect) {
+            throw new IncorrectPasswordException("Incorrect password.");
+        }
+        return user;
     }
 
     public boolean delete(UUID userId) {

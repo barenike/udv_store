@@ -1,7 +1,7 @@
 package com.example.udv_store.model.service;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
-import com.example.udv_store.exceptions.JavascriptWebTokenIsNotFoundException;
+import com.example.udv_store.exceptions.JSONWebTokenIsNotFoundException;
 import com.example.udv_store.exceptions.NotEnoughCoinsException;
 import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationDetails;
@@ -46,7 +46,7 @@ public class OrderService {
         String userId = jwtProvider.getUserIdFromToken(token.substring(7));
         UserEntity user = userService.findByUserId(userId);
         if (user == null) {
-            throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+            throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
         }
         order.setUserId(UUID.fromString(userId));
         order.setCreationDate(getCurrentYekaterinburgDate());

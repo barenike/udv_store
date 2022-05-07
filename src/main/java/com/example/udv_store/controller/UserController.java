@@ -10,6 +10,8 @@ import com.example.udv_store.model.service.PasswordResetTokenService;
 import com.example.udv_store.model.service.UserService;
 import com.example.udv_store.model.service.email_verification.OnRegistrationCompleteEvent;
 import com.example.udv_store.model.service.email_verification.VerificationTokenService;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,11 @@ public class UserController {
     private final JwtProvider jwtProvider;
     private final ApplicationEventPublisher eventPublisher;
 
-    public UserController(UserService userService, PasswordResetTokenService passwordResetTokenService, VerificationTokenService verificationTokenService, JwtProvider jwtProvider, ApplicationEventPublisher eventPublisher) {
+    public UserController(UserService userService,
+                          PasswordResetTokenService passwordResetTokenService,
+                          VerificationTokenService verificationTokenService,
+                          JwtProvider jwtProvider,
+                          ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
         this.passwordResetTokenService = passwordResetTokenService;
         this.verificationTokenService = verificationTokenService;
@@ -72,15 +78,13 @@ public class UserController {
     public ResponseEntity<?> auth(@RequestBody @Valid AuthRequest authRequest) {
         try {
             UserEntity user = userService.findByEmailAndPassword(authRequest.getEmail(), authRequest.getPassword());
-            if (user == null) {
-                throw new IncorrectEmailOrPasswordException("Incorrect username or password.");
-            } else if (!user.isEnabled()) {
+            if (!user.isEnabled()) {
                 throw new NotEnabledUserException("Please, complete registration process by clicking on the link in email we sent you.");
             } else {
                 String token = jwtProvider.generateToken(String.valueOf(user.getId()));
                 return new ResponseEntity<>(new AuthResponse(token), HttpStatus.OK);
             }
-        } catch (IncorrectEmailOrPasswordException e) {
+        } catch (IncorrectEmailException | IncorrectPasswordException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (NotEnabledUserException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
@@ -94,8 +98,8 @@ public class UserController {
         try {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
             UserEntity user = userService.findByUserId(userId);
-            if (user == null) {
-                throw new JavascriptWebTokenIsNotFoundException("This JWT does not exist.");
+            if (userId == null) {
+                throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
             }
             return new ResponseEntity<>(new InfoResponse(
                     user.getId().toString(),
@@ -103,7 +107,7 @@ public class UserController {
                     user.getEmail(),
                     user.getUserBalance()),
                     HttpStatus.OK);
-        } catch (JavascriptWebTokenIsNotFoundException e) {
+        } catch (JSONWebTokenIsNotFoundException | MalformedJwtException | SignatureException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
