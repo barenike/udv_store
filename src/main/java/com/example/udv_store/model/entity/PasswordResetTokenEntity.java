@@ -8,8 +8,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "password_reset_tokens")
 public class PasswordResetTokenEntity {
-    private static final int EXPIRATION = 60 * 24;
-
     @Id
     @Column(unique = true, name = "id", nullable = false)
     @GeneratedValue(generator = "uuid")
@@ -22,9 +20,6 @@ public class PasswordResetTokenEntity {
     @OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
-
-    //@Column(name = "expiry_date", nullable = false)
-    //private Date expiryDate;
 
     public PasswordResetTokenEntity() {
     }
@@ -53,11 +48,4 @@ public class PasswordResetTokenEntity {
         this.user = user;
     }
 
-    /*public Date getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(Date expiryDate) {
-        this.expiryDate = expiryDate;
-    }*/
 }

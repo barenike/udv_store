@@ -24,6 +24,7 @@ public class ProductController {
         this.productService = productService;
     }
 
+    // Failure tests is possibly needed.
     @PostMapping("/admin/product")
     public ResponseEntity<?> createProduct(@ModelAttribute @Valid ProductCreationRequest productCreationRequest) {
         try {

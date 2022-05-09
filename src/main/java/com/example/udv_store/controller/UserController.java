@@ -56,6 +56,7 @@ public class UserController {
         }
     }
 
+    // Test is needed.
     @GetMapping("/register/confirm")
     public ResponseEntity<?> confirmRegistration(@RequestParam("token") String tokenString) {
         try {
@@ -114,6 +115,7 @@ public class UserController {
         }
     }
 
+    // Test is needed.
     @PostMapping("/reset/password/{email}")
     public ResponseEntity<?> sendResetPasswordMail(@PathVariable(name = "email") String email,
                                                    HttpServletRequest request) {
@@ -132,6 +134,7 @@ public class UserController {
         }
     }
 
+    // Test is needed.
     @GetMapping("/reset/password/{token}")
     public ResponseEntity<?> resetPassword(@PathVariable("token") String token,
                                            @RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
@@ -150,7 +153,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/admin/user/{userId}")
+    @DeleteMapping("/admin/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable(name = "userId") UUID userId) {
         try {
             final boolean isDeleted = userService.delete(userId);
