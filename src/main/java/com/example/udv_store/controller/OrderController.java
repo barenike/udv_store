@@ -1,7 +1,6 @@
 package com.example.udv_store.controller;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
-import com.example.udv_store.exceptions.JSONWebTokenIsNotFoundException;
 import com.example.udv_store.exceptions.NotEnoughCoinsException;
 import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationRequest;
@@ -35,8 +34,6 @@ public class OrderController {
         try {
             orderService.create(orderCreationRequest, token);
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (JSONWebTokenIsNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (NotEnoughCoinsException | ProductIsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
@@ -49,15 +46,10 @@ public class OrderController {
         try {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
             UserEntity user = userService.findByUserId(userId);
-            if (user == null) {
-                throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
-            }
             final List<OrderEntity> orders = orderService.findOrdersByUserId(user.getId());
             return orders != null && !orders.isEmpty()
                     ? new ResponseEntity<>(orders, HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.OK);
-        } catch (JSONWebTokenIsNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -100,6 +92,11 @@ public class OrderController {
                         : new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
             }
         } catch (ProductIsNotFoundException e) {
+            /*
+             * Is it possible that we have order with a product that doesn't exist!?
+             * Database won't allow deleting of a product that is employed in at least one order?
+             * Or will allow? Find out the answer.
+             */
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

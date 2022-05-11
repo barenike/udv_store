@@ -1,7 +1,6 @@
 package com.example.udv_store.model.service;
 
 import com.example.udv_store.configuration.jwt.JwtProvider;
-import com.example.udv_store.exceptions.JSONWebTokenIsNotFoundException;
 import com.example.udv_store.exceptions.NotEnoughCoinsException;
 import com.example.udv_store.exceptions.ProductIsNotFoundException;
 import com.example.udv_store.infrastructure.order.OrderCreationDetails;
@@ -45,14 +44,15 @@ public class OrderService {
         order.setStatus(OrderStatusEnum.CREATED.toString());
         String userId = jwtProvider.getUserIdFromToken(token.substring(7));
         UserEntity user = userService.findByUserId(userId);
-        if (user == null) {
-            throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
-        }
         order.setUserId(UUID.fromString(userId));
         order.setCreationDate(getCurrentYekaterinburgDate());
         int total = 0;
         for (OrderCreationDetails orderCreationDetails : orderCreationRequest.getOrderCreationDetails()) {
-            total += productService.getProduct(UUID.fromString(orderCreationDetails.getProductId())).getPrice() * orderCreationDetails.getQuantity();
+            ProductEntity product = productService.getProduct(UUID.fromString(orderCreationDetails.getProductId()));
+            if (product == null) {
+                throw new ProductIsNotFoundException("Product with this UUID does not exist.");
+            }
+            total += product.getPrice() * orderCreationDetails.getQuantity();
         }
         Integer userBalance = user.getUserBalance();
         if (total > userBalance) {
@@ -69,7 +69,7 @@ public class OrderService {
         if (orderRepository.existsById(id)) {
             OrderEntity order = orderRepository.getById(id);
             order.setStatus(OrderStatusEnum.valueOf(status).toString());
-            if (OrderStatusEnum.SHIPPED.toString().equals(status)) {
+            if (OrderStatusEnum.CONFIRMED.toString().equals(status)) {
                 order.setShippingDate(getCurrentYekaterinburgDate());
             } else if (OrderStatusEnum.COMPLETED.toString().equals(status)) {
                 order.setCompletionDate(getCurrentYekaterinburgDate());

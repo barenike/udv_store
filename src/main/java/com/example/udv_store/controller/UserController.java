@@ -99,16 +99,13 @@ public class UserController {
         try {
             String userId = jwtProvider.getUserIdFromToken(token.substring(7));
             UserEntity user = userService.findByUserId(userId);
-            if (userId == null) {
-                throw new JSONWebTokenIsNotFoundException("This JWT does not exist.");
-            }
             return new ResponseEntity<>(new InfoResponse(
                     user.getId().toString(),
                     user.getRoleEntity().getRoleId(),
                     user.getEmail(),
                     user.getUserBalance()),
                     HttpStatus.OK);
-        } catch (JSONWebTokenIsNotFoundException | MalformedJwtException | SignatureException e) {
+        } catch (MalformedJwtException | SignatureException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
