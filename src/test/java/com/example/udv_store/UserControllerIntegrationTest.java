@@ -30,7 +30,7 @@ public class UserControllerIntegrationTest {
     private TestService testService;
 
     @Test
-    public void registerSuccess() throws Exception {
+    public void register_201() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\" : \"lilo-games@mail.ru\", \"password\" : \"123456Aa\"}"))
@@ -38,7 +38,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void registerFailureEmailPatternIsViolated() throws Exception {
+    public void registerEmailPatternIsViolated_400() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\" : \"lilo-games@gmail.ru\", \"password\" : \"123456Aa\"}"))
@@ -46,7 +46,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void registerFailurePasswordPatternIsViolated() throws Exception {
+    public void registerPasswordPatternIsViolated_400() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\" : \"lilo-games@mail.ru\", \"password\" : \"12345Aa\"}"))
@@ -54,7 +54,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void registerFailureEmailAlreadyRegistered() throws Exception {
+    public void registerEmailAlreadyRegistered_403() throws Exception {
         testService.register();
         mvc.perform(MockMvcRequestBuilders.post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +63,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void authSuccess() throws Exception {
+    public void auth_200() throws Exception {
         testService.register();
         testService.enableUser();
         mvc.perform(MockMvcRequestBuilders.post("/auth")
@@ -73,7 +73,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void authFailureUserIsNotEnabled() throws Exception {
+    public void authUserIsNotEnabled_403() throws Exception {
         testService.register();
         mvc.perform(MockMvcRequestBuilders.post("/auth")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +82,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void authFailureIncorrectEmail() throws Exception {
+    public void authIncorrectEmail_401() throws Exception {
         testService.register();
         testService.enableUser();
         mvc.perform(MockMvcRequestBuilders.post("/auth")
@@ -92,7 +92,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void authFailureIncorrectPassword() throws Exception {
+    public void authIncorrectPassword_401() throws Exception {
         testService.register();
         testService.enableUser();
         mvc.perform(MockMvcRequestBuilders.post("/auth")
@@ -102,7 +102,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void infoSuccess() throws Exception {
+    public void info_200() throws Exception {
         testService.register();
         testService.enableUser();
         mvc.perform(MockMvcRequestBuilders.get("/info")
@@ -111,7 +111,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void infoFailureJSONWebTokenIsIncorrect() throws Exception {
+    public void infoJSONWebTokenIsIncorrect_401() throws Exception {
         testService.register();
         testService.enableUser();
         String jwt = "fake" + testService.getUserJWT().substring(4);
@@ -121,7 +121,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void deleteUserSuccess() throws Exception {
+    public void deleteUser_200() throws Exception {
         testService.register();
         UserEntity user = userService.findByEmail("lilo-games@mail.ru");
         mvc.perform(MockMvcRequestBuilders
@@ -131,7 +131,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void deleteUserFailureUserIsNotFound() throws Exception {
+    public void deleteUserUserIsNotFound_304() throws Exception {
         testService.register();
         mvc.perform(MockMvcRequestBuilders
                         .delete("/admin/{userId}", "c4f44950-2b80-4cf0-a060-ad99d19cc636")
@@ -140,7 +140,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void changeUserBalanceSuccess() throws Exception {
+    public void changeUserBalance_200() throws Exception {
         testService.register();
         UserEntity user = userService.findByEmail("lilo-games@mail.ru");
         mvc.perform(MockMvcRequestBuilders.post("/admin/user_balance")
@@ -151,7 +151,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void changeUserBalanceFailureUserIsNotFound() throws Exception {
+    public void changeUserBalanceUserIsNotFound_403() throws Exception {
         testService.register();
         mvc.perform(MockMvcRequestBuilders.post("/admin/user_balance")
                         .contentType(MediaType.APPLICATION_JSON)

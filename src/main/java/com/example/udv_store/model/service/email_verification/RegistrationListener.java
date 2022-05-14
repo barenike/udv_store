@@ -33,9 +33,10 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
     private SimpleMailMessage constructEmailMessage(OnRegistrationCompleteEvent event, UserEntity user, String token) {
         String recipientAddress = user.getEmail();
-        String subject = "Registration Confirmation for UDV Store";
+        String subject = "Подтверждение регистрации в UDV Store";
         String confirmationUrl = event.getAppUrl() + "/register/confirm?token=" + token;
-        String message = "Please, click on this link if you want to complete registration in UDV Store.";
+        String message = "Здравствуйте, вы получили это сообщение, так как ваш адрес был использован при регистрации нового пользователя для UDV Store." +
+                "\nДля подтверждения регистрации перейдите по следующей ссылке:";
         SimpleMailMessage email = new SimpleMailMessage();
         email.setFrom("no-reply-udv@mail.ru");
         email.setTo(recipientAddress);

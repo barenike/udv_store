@@ -68,7 +68,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void createOrderSuccess() throws Exception {
+    public void createOrder_201() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -82,7 +82,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void createOrderFailureNotEnoughCoins() throws Exception {
+    public void createOrderNotEnoughCoins_403() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(10);
@@ -96,7 +96,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void createOrderFailureProductIsNotFound() throws Exception {
+    public void createOrderProductIsNotFound_403() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -110,7 +110,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void getMyOrdersSuccess() throws Exception {
+    public void getMyOrders_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -123,7 +123,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void deleteMyOrderSuccess() throws Exception {
+    public void deleteMyOrder_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -136,7 +136,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void deleteMyOrderFailureOrderDoesNotExist() throws Exception {
+    public void deleteMyOrderOrderDoesNotExist_304() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -149,7 +149,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void manipulateOrdersGetAllOrdersSuccess() throws Exception {
+    public void manipulateOrdersGetAllOrders_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -162,7 +162,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void manipulateOrdersGetOrdersByUserIdSuccess() throws Exception {
+    public void manipulateOrdersGetOrdersByUserId_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -176,7 +176,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void manipulateOrdersChangeStatusSuccess() throws Exception {
+    public void manipulateOrdersChangeStatus_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);
@@ -184,23 +184,23 @@ public class OrderControllerIntegrationTest {
         createOrder();
         mvc.perform(MockMvcRequestBuilders.get("/admin/orders")
                         .param("orderId", getOrderId())
-                        .param("status", "CONFIRMED")
+                        .param("status", "SHIPPED")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isOk());
         testService.deleteProduct();
     }
 
     @Test
-    public void manipulateOrdersChangeStatusFailureOrderDoesNotExist() throws Exception {
+    public void manipulateOrdersChangeStatusOrderDoesNotExist_304() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/admin/orders")
                         .param("orderId", "fb96924c-f4a2-4576-8b8b-42b903d9a822")
-                        .param("status", "CONFIRMED")
+                        .param("status", "SHIPPED")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isNotModified());
     }
 
     @Test
-    public void manipulateOrdersDeleteSuccess() throws Exception {
+    public void manipulateOrdersDelete_200() throws Exception {
         testService.register();
         testService.enableUser();
         setUserBalance(20);

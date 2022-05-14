@@ -69,7 +69,7 @@ public class OrderService {
         if (orderRepository.existsById(id)) {
             OrderEntity order = orderRepository.getById(id);
             order.setStatus(OrderStatusEnum.valueOf(status).toString());
-            if (OrderStatusEnum.CONFIRMED.toString().equals(status)) {
+            if (OrderStatusEnum.SHIPPED.toString().equals(status)) {
                 order.setShippingDate(getCurrentYekaterinburgDate());
             } else if (OrderStatusEnum.COMPLETED.toString().equals(status)) {
                 order.setCompletionDate(getCurrentYekaterinburgDate());

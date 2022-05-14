@@ -37,7 +37,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void createProductSuccess() throws Exception {
+    public void createProduct_201() throws Exception {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Juuur.jpg")) {
             MockMultipartFile file = new MockMultipartFile("file", "Juuur.jpg", "application/json", inputStream);
             MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
@@ -55,34 +55,36 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void changeProductAmountSuccess() throws Exception {
+    public void changeProductAmount_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.post("/admin/product_amount")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"productId\" : \"" + testService.getProductId() + "\", \"amount\" : 500}")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isOk());
+        testService.deleteProduct();
     }
 
     @Test
-    public void changeProductAmountFailureProductDoesNotExist() throws Exception {
+    public void changeProductAmountProductDoesNotExist_403() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.post("/admin/product_amount")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"productId\" : \"a04096a1-014c-40a8-8471-46dbf85113b4\", \"amount\" : 500}")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isForbidden());
+        testService.deleteProduct();
     }
 
     @Test
-    public void getProductsSuccess() throws Exception {
+    public void getProducts_200() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/products")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void getProductSuccess() throws Exception {
+    public void getProduct_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.get("/products/{productId}", testService.getProductId())
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
@@ -91,7 +93,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void getProductFailureProductDoesNotExist() throws Exception {
+    public void getProductProductDoesNotExist_404() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.get("/products/{productId}", "a04096a1-014c-40a8-8471-46dbf85113b4")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
@@ -100,7 +102,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProductSuccess() throws Exception {
+    public void deleteProduct_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.delete("/admin/product/{productId}", testService.getProductId())
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
@@ -108,7 +110,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProductFailureProductDoesNotExist() throws Exception {
+    public void deleteProductProductDoesNotExist_304() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.delete("/admin/product/{productId}", "a04096a1-014c-40a8-8471-46dbf85113b4")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))

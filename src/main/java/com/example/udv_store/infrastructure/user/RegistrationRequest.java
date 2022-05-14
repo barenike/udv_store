@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 public class RegistrationRequest implements Serializable {
-    // For testing
+    // For testing, return to @ussc\\.ru in production
     @Pattern(regexp = "[\\w!#$%&'.*+/=?^`{|}~-]*@mail\\.ru")
     private String email;
 
