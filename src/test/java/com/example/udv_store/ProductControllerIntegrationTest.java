@@ -30,14 +30,14 @@ public class ProductControllerIntegrationTest {
     @Autowired
     private TestService testService;
 
-    // If one test will fail, then deleteProductSuccess also fail.
+    // If one test will fail, then deleteProduct_Returns_200 also will fail, because of this method.
     @AfterEach
     void cleanup() {
         testService.deleteProduct();
     }
 
     @Test
-    public void createProduct_201() throws Exception {
+    public void createProduct_Returns_201() throws Exception {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Juuur.jpg")) {
             MockMultipartFile file = new MockMultipartFile("file", "Juuur.jpg", "application/json", inputStream);
             MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
@@ -55,7 +55,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void changeProductAmount_200() throws Exception {
+    public void changeProductAmount_Returns_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.post("/admin/product_amount")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +66,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void changeProductAmountProductDoesNotExist_403() throws Exception {
+    public void changeProductAmount_Returns_403_When_ProductDoesNotExist() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.post("/admin/product_amount")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -77,14 +77,14 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void getProducts_200() throws Exception {
+    public void getProducts_Returns_200() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/products")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void getProduct_200() throws Exception {
+    public void getProduct_Returns_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.get("/products/{productId}", testService.getProductId())
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
@@ -93,16 +93,16 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void getProductProductDoesNotExist_404() throws Exception {
+    public void getProduct_Returns_404_When_ProductDoesNotExist() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.get("/products/{productId}", "a04096a1-014c-40a8-8471-46dbf85113b4")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
         testService.deleteProduct();
     }
 
     @Test
-    public void deleteProduct_200() throws Exception {
+    public void deleteProduct_Returns_200() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.delete("/admin/product/{productId}", testService.getProductId())
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))
@@ -110,7 +110,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProductProductDoesNotExist_304() throws Exception {
+    public void deleteProduct_Returns_304_When_ProductDoesNotExist() throws Exception {
         testService.createProduct();
         mvc.perform(MockMvcRequestBuilders.delete("/admin/product/{productId}", "a04096a1-014c-40a8-8471-46dbf85113b4")
                         .header("Authorization", "Bearer " + testService.getAdminJWT()))

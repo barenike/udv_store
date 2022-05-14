@@ -66,12 +66,15 @@ public class ProductController {
     }
 
     @GetMapping("/products/{productId}")
-    public ResponseEntity<ProductEntity> getProduct(@PathVariable(name = "productId") UUID productId) {
+    public ResponseEntity<?> getProduct(@PathVariable(name = "productId") UUID productId) {
         try {
             final ProductEntity product = productService.getProduct(productId);
-            return product != null
-                    ? new ResponseEntity<>(product, HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (product == null) {
+                throw new ProductIsNotFoundException("Product with this UUID does not exist.");
+            }
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } catch (ProductIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

@@ -18,32 +18,32 @@ import java.util.List;
 
 @Service
 public class TestService {
+    // In production, change to @ussc.ru
+    final String email = "lilo-games@mail.ru";
+    final String password = "123456Aa";
     @Autowired
     private MockMvc mvc;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private ProductService productService;
-
     @Autowired
     private DropboxService dropboxService;
 
     void register() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\" : \"lilo-games@mail.ru\", \"password\" : \"123456Aa\"}"));
+                .content("{\"email\" : \"" + email + "\", \"password\" : \"" + password + "\"}"));
     }
 
     void enableUser() {
-        userService.enableUser(userService.findByEmail("lilo-games@mail.ru"));
+        userService.enableUser(userService.findByEmail(email));
     }
 
     String getUserJWT() throws Exception {
         String jwt = mvc.perform(MockMvcRequestBuilders.post("/auth")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\" : \"lilo-games@mail.ru\", \"password\" : \"123456Aa\"}"))
+                        .content("{\"email\" : \"" + email + "\", \"password\" : \"" + password + "\"}"))
                 .andReturn().getResponse().getContentAsString();
         jwt = jwt.substring(10, jwt.length() - 2);
         return jwt;
@@ -52,7 +52,7 @@ public class TestService {
     String getAdminJWT() throws Exception {
         String jwt = mvc.perform(MockMvcRequestBuilders.post("/auth")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\" : \"admin@ussc.ru\", \"password\" : \"123456Aa\"}"))
+                        .content("{\"email\" : \"admin@ussc.ru\", \"password\" : \"" + password + "\"}"))
                 .andReturn().getResponse().getContentAsString();
         jwt = jwt.substring(10, jwt.length() - 2);
         return jwt;

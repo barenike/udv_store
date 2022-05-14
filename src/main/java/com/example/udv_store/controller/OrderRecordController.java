@@ -1,12 +1,12 @@
 package com.example.udv_store.controller;
 
+import com.example.udv_store.exceptions.OrderRecordIsNotFoundException;
 import com.example.udv_store.model.entity.OrderRecordEntity;
 import com.example.udv_store.model.service.OrderRecordService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,23 +33,29 @@ public class OrderRecordController {
     }
 
     @GetMapping("/admin/order_records")
-    public ResponseEntity<List<OrderRecordEntity>> manipulateOrderRecords(@RequestParam(value = "orderId", required = false) UUID orderId) {
+    public ResponseEntity<List<OrderRecordEntity>> getOrderRecords() {
         try {
-            final List<OrderRecordEntity> orderRecords;
-            if (orderId == null) {
-                orderRecords = orderRecordService.findAllOrderRecords();
-            } else {
-                orderRecords = orderRecordService.findAllOrderRecordsByOrderId(orderId);
-            }
-            return getListResponseEntity(orderRecords);
+            List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecords();
+            return orderRecords != null && !orderRecords.isEmpty()
+                    ? new ResponseEntity<>(orderRecords, HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    private ResponseEntity<List<OrderRecordEntity>> getListResponseEntity(List<OrderRecordEntity> orders) {
-        return orders != null && !orders.isEmpty()
-                ? new ResponseEntity<>(orders, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/admin/order_records/{orderRecordId}")
+    public ResponseEntity<?> getOrderRecordById(@PathVariable(name = "orderRecordId") UUID orderRecordId) {
+        try {
+            List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(orderRecordId);
+            if (orderRecords == null) {
+                throw new OrderRecordIsNotFoundException("Order record with this UUID does not exist.");
+            }
+            return new ResponseEntity<>(orderRecords, HttpStatus.OK);
+        } catch (OrderRecordIsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }
