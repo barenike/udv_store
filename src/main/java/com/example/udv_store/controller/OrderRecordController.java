@@ -47,8 +47,8 @@ public class OrderRecordController {
     @GetMapping("/admin/order_records/{orderRecordId}")
     public ResponseEntity<?> getOrderRecordById(@PathVariable(name = "orderRecordId") UUID orderRecordId) {
         try {
-            List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(orderRecordId);
-            if (orderRecords == null) {
+            List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsById(orderRecordId);
+            if (orderRecords.isEmpty()) {
                 throw new OrderRecordIsNotFoundException("Order record with this UUID does not exist.");
             }
             return new ResponseEntity<>(orderRecords, HttpStatus.OK);

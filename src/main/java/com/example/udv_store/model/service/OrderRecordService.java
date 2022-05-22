@@ -35,9 +35,9 @@ public class OrderRecordService {
         return orderRecordRepository.findByOrderId(orderId);
     }
 
-    public List<OrderRecordEntity> findAllOrderRecordsByOrderId(UUID orderId) {
+    public List<OrderRecordEntity> findAllOrderRecordsById(UUID id) {
         List<OrderRecordEntity> allOrders = findAllOrderRecords();
-        return allOrders.stream().filter(orderRecord -> orderRecord.getOrderId().equals(orderId)).collect(Collectors.toList());
+        return allOrders.stream().filter(orderRecord -> orderRecord.getId().equals(id)).collect(Collectors.toList());
     }
 
     public boolean delete(UUID id) {

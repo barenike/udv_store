@@ -110,6 +110,7 @@ public class UserControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    // Do I really need this?
     @Test
     public void info_Returns_401_When_JSONWebTokenIsIncorrect() throws Exception {
         testService.register();
@@ -151,12 +152,20 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    public void changeUserBalance_Returns_When_UserIsNotFound() throws Exception {
+    public void changeUserBalance_Returns_403_When_UserIsNotFound() throws Exception {
         testService.register();
         mvc.perform(MockMvcRequestBuilders.post("/admin/user_balance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + testService.getAdminJWT())
                         .content("{\"userId\" : \"c4f44950-2b80-4cf0-a060-ad99d19cc636\", \"userBalance\" : 200}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void getAllUsersInfo_Returns_200() throws Exception {
+        testService.register();
+        mvc.perform(MockMvcRequestBuilders.get("/admin/info")
+                        .header("Authorization", "Bearer " + testService.getAdminJWT()))
+                .andExpect(status().isOk());
     }
 }

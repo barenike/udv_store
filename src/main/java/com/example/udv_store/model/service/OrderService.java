@@ -100,7 +100,7 @@ public class OrderService {
             UserEntity user = userService.findByUserId(userId);
             Integer userBalance = user.getUserBalance();
             Integer total = order.getTotal();
-            List<OrderRecordEntity> orderRecords = orderRecordService.findAllOrderRecordsByOrderId(id);
+            List<OrderRecordEntity> orderRecords = orderRecordService.findOrderRecordsByOrderId(id);
             for (OrderRecordEntity orderRecord : orderRecords) {
                 ProductEntity product = productService.getProduct(orderRecord.getProductId());
                 if (product == null) {

@@ -90,6 +90,12 @@ public class UserService {
         return user;
     }
 
+    public List<UserEntity> findAllUsers() {
+        List<UserEntity> users = readAll();
+        users.removeIf(user -> user.getRoleEntity().getName().equals("ROLE_ADMIN") || !user.isEnabled());
+        return users;
+    }
+
     public boolean delete(UUID userId) {
         if (userRepository.existsById(userId)) {
             boolean isVerificationTokenDeleted = verificationTokenService.deleteByUserId(userId);

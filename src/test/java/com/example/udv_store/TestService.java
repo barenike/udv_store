@@ -1,7 +1,11 @@
 package com.example.udv_store;
 
+import com.example.udv_store.configuration.jwt.JwtProvider;
 import com.example.udv_store.infrastructure.product.ProductResponse;
+import com.example.udv_store.model.entity.OrderEntity;
+import com.example.udv_store.model.entity.UserEntity;
 import com.example.udv_store.model.service.DropboxService;
+import com.example.udv_store.model.service.OrderService;
 import com.example.udv_store.model.service.ProductService;
 import com.example.udv_store.model.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TestService {
@@ -29,6 +34,11 @@ public class TestService {
     private ProductService productService;
     @Autowired
     private DropboxService dropboxService;
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     void register() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/register")
@@ -38,6 +48,14 @@ public class TestService {
 
     void enableUser() {
         userService.enableUser(userService.findByEmail(email));
+    }
+
+    void setUserBalance(Integer balance) throws Exception {
+        UserEntity user = userService.findByEmail("lilo-games@mail.ru");
+        mvc.perform(MockMvcRequestBuilders.post("/admin/user_balance")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + getAdminJWT())
+                .content("{\"userId\" : \"" + user.getId().toString() + "\", \"userBalance\" : " + balance + "}"));
     }
 
     String getUserJWT() throws Exception {
@@ -82,5 +100,17 @@ public class TestService {
 
     void deleteProduct() {
         dropboxService.delete("/Juuur.jpg");
+    }
+
+    void createOrder() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.post("/user/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"orderCreationDetails\" : [{\"productId\" : \"" + getProductId() + "\",\"quantity\" : 2}]}")
+                .header("Authorization", "Bearer " + getUserJWT()));
+    }
+
+    String getOrderId() throws Exception {
+        List<OrderEntity> orders = orderService.findOrdersByUserId(UUID.fromString(jwtProvider.getUserIdFromToken(getUserJWT())));
+        return orders.get(0).getId().toString();
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -105,7 +106,7 @@ public class UserController {
                     user.getEmail(),
                     user.getUserBalance()),
                     HttpStatus.OK);
-        } catch (MalformedJwtException | SignatureException e) {
+        } catch (MalformedJwtException | SignatureException e) { // Do I need this?
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -173,6 +174,25 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (UserIsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/admin/info")
+    public ResponseEntity<?> getAllUsersInfo() {
+        try {
+            List<UserEntity> users = userService.findAllUsers();
+            List<InfoResponse> result = users.stream().map(user -> new InfoResponse(
+                    user.getId().toString(),
+                    user.getRoleEntity().getRoleId(),
+                    user.getEmail(),
+                    user.getUserBalance()
+            )).toList();
+            AdminInfoResponse adminInfoResponse = new AdminInfoResponse(result);
+            return adminInfoResponse.getInfoList() != null && !adminInfoResponse.getInfoList().isEmpty()
+                    ? new ResponseEntity<>(adminInfoResponse, HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
