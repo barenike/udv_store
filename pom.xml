@@ -13,6 +13,9 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>udv_store</name>
     <description>udv_store</description>
+    <properties>
+        <java.version>18</java.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
