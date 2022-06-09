@@ -1,6 +1,7 @@
 {
   "name": "udv_store",
   "version": "0.1.0",
+  "homepage": "https://udv-store-uscc.herokuapp.com/",
   "type": "module",
   "private": true,
   "dependencies": {
