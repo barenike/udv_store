@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './src/main/resources/static/src/index.css/index.css';
-import App from './src/main/resources/static/src/App';
-import reportWebVitals from './src/main/resources/static/src/reportWebVitals';
-import {AuthProvider} from "./src/main/resources/static/src/context/AuthProvider";
+import App from './main/resources/static/src/App.js';
+import reportWebVitals from './main/resources/static/src/reportWebVitals.js';
+import {AuthProvider} from "./main/resources/static/src/context/AuthProvider.js";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {Provider} from "react-redux";
-import {store,persistor} from './src/main/resources/static/src/redux/store'
+import {store,persistor} from './main/resources/static/src/redux/store.js'
 import { PersistGate } from 'redux-persist/integration/react'
 
 ReactDOM.render(
